@@ -1,0 +1,24 @@
+{
+  "name": "llama-bot-framework",
+  "version": "1.0.0",
+  "description": "Enable your ollama model to participate in online chats.",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/longjoel/llama-bot-framework.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/longjoel/llama-bot-framework/issues"
+  },
+  "homepage": "https://github.com/longjoel/llama-bot-framework#readme",
+  "dependencies": {
+    "irc": "^0.5.2",
+    "ollama": "^0.5.12"
+  }
+}
