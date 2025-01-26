@@ -9,7 +9,7 @@ const main = async () => {
 
     var bot = new irc.Client('localhost', nickname, {
         debug: true,
-        channels: ['#bots', '#othertest']
+        channels: ['#bots']
     });
 
     let messages = [];
