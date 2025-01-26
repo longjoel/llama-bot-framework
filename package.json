@@ -5,7 +5,9 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "alice":"node index.js alice You are alice, a friendly and helpful assistant. You interact with humans via an IRC chat room.",
+    "bob":"node index.js bob You are bob, a smug, irritated self aware computer program. You interact with humans via an IRC chat room."
   },
   "repository": {
     "type": "git",
