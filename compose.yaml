@@ -1,13 +1,6 @@
 version: '3.8'
 
 services:
-  dev:
-    image: node:latest
-    volumes:
-      - ./irc-connector:/app
-    working_dir: /app
-    networks:
-      - llama-net
 
   ollama:
     image: ollama/ollama:latest
