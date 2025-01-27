@@ -37,14 +37,14 @@ const main = async () => {
 
             const response = await ollama.chat({
                 model: 'llama3.2',
-                system: systemPrompt,
+                system: systemPrompt + additionalSystemPrompting,
                 messages: messages,
                 stream: false,
             });
 
             console.log(response.message.content);
             bot.say('#bots', response.message.content);
-            messages = [{ role: 'system', content: systemPrompt }, ...messages.slice(-25), { role: 'assistant', content: response.message.content }];
+            messages = [{ role: 'system', content: systemPrompt +additionalSystemPrompting }, ...messages.slice(-25), { role: 'assistant', content: response.message.content }];
         }
     }, 1000 * 20);
 
