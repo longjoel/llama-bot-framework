@@ -52,7 +52,7 @@ const main = async () => {
 
                     console.log(response.message.content);
                     bot.say('#bots', response.message.content);
-                    messages = [{ role: 'system', content: systemPrompt + additionalSystemPrompting }, ...messages.slice(-25), { role: 'assistant', content: response.message.content }];
+                    messages = [{ role: 'system', content: systemPrompt + additionalSystemPrompting }, ...messages.slice(-10), { role: 'assistant', content: response.message.content }];
                     success = true;
                 }
                 catch (e) {
@@ -65,9 +65,6 @@ const main = async () => {
     }
 
     await tick();
-
-    // don't reply to every message at once. Take a breather to read.
-    //setInterval(, 1000 * 20);
 
     bot.addListener('error', function (message) {
         console.error('ERROR: %s: %s', message.command, message.args.join(' '));
@@ -100,7 +97,6 @@ const main = async () => {
 
         incommingMessages.push(`[${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}] <${who}> has left ${channel}`);
 
-        messages.push({ role: 'user', content: `<${who}> has left ${channel}: ${reason}` });
         console.log('%s has left %s: %s', who, channel, reason);
     });
     bot.addListener('kick', function (channel, who, by, reason) {
