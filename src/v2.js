@@ -4,6 +4,7 @@
  * 1. Wait for messages from the IRC channel
  * 2. When the number of messages reaches the minimum required, ask llama3.2 to summarize the conversation, and respond with thinking out loud about the conversation.
  * 3. Take the toughts and refine them further against the system prompt, and send the response to the IRC channel.
+ * 4. Determine if the conversation is getting flat. If so, prompt the bot to think out loud about the conversation.
  */
 
 import ollama from "ollama";
