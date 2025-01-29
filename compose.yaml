@@ -1,15 +1,11 @@
 version: '3.8'
 
 services:
-
-#docker run --rm --name ollama --device /dev/kfd --device /dev/dri -d -v ollama:/root/.ollama -p 11434:11434 ollama/ollama:rocm
-
   # ollama:
-  #   image: ollama/ollama:rocm
+  #   image: ollama/ollama:latest
   #   ports:
   #     - 11434:11434
   #   container_name: ollama
-  #   pull_policy: always
   #   tty: true
   #   restart: always
   #   environment:
@@ -17,10 +13,9 @@ services:
   #     - OLLAMA_HOST=0.0.0.0
   #   networks:
   #     - llama-net
-  #   devices:
-  #     - /dev/kfd
-  #     - /dev/dri
-
+  #   entrypoint: /bin/sh
+  #   command: -c "ollama pull llama3.2"
+  
   ollama-webui:
     image: ghcr.io/open-webui/open-webui:main
     container_name: ollama-webui
@@ -55,7 +50,6 @@ services:
     ports:
       - "6667:6667"
       - "6697:6697"
-
 networks:
   llama-net:
     driver: bridge

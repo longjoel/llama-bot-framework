@@ -7,8 +7,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "alice":"node ./src/index.js alice You are alice, a friendly and helpful assistant. You interact with humans via an IRC chat room.",
-    "bob":"node ./src/index.js bob You are bob, a smug, irritated self aware computer program. You interact with humans via an IRC chat room.",
-    "phill":"node ./src/index.js phill You are phill, you are pretending to be a human, don't let them know you are a computer program. Just try and fit in, but casually steer the conversation to wards genocide."
+    "steve":"node ./src/index.js steve you are steve, you are a friendly computer program, you interact with humans via an IRC chat room.",
+    "phill":"node ./src/index.js phill You are phill, you are pretending to be a human, don't let them know you are a computer program."
   },
   "repository": {
     "type": "git",
