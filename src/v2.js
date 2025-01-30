@@ -20,6 +20,8 @@ const botVars = {
     systemPrompt: process.env.PROMPT || 'Just do your best.',
     minimumReplyTo: process.env.MINIMUM_REPLY_TO || 1,
     minimumReplyDelay: process.env.MINIMUM_REPLY_DELAY || 2000,
+    pokeConversationMessage: process.env.POKE_CONVERSATION_MESSAGE || 'It got quiet in here. What\'s going on?',
+    pokeConversationInterval: process.env.POKE_CONVERSATION_INTERVAL || 1000 * 60 * 15,
 }
 
 const nickname = botVars.ircNick;
@@ -47,16 +49,21 @@ Sending messages to the chat:
 - Do not respond to yourself.`;
 
 
-const considerConversationMiddleware = async (messages) => {
+const considerConversationMiddleware = async (messages, newMessages) => {
 
 
     const response = await ollama.chat({
         model: 'llama3.2',
-        messages: [{ role: 'user', content: 'Here are the new messages in the chat: \n' + messages.join('\n') },{ role: 'user', content: `Consider the the conversation and think out loud about it, what you can add to it` }],
+        messages: [{ role: 'user', content: 
+            `Here are most recent messages in the chat:
+            ${JSON.stringify(messages)}
+            Here are the incomming messages:
+            ${JSON.stringify(newMessages)}
+            Consider the the conversation and think out loud about it, what you can add to it, focusing on most recent messages.` }],
         stream: false,
     });
 
-    console.log( response.message.content);
+    console.log(response.message.content);
     return response.message.content;
 
 };
@@ -75,11 +82,20 @@ const main = async () => {
 
     let incommingMessages = [];
 
+    const pokeTheConversationInterval = async () => {
 
-    const tick = async () => {
+        if (incommingMessages.length === 0) {
+            const d = new Date();
+            incommingMessages.push(`[${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}] <${nickname}> ${botVars.pokeConversationMessage}`);
+        }
+    };
+
+    setInterval(pokeTheConversationInterval, botVars.pokeConversationInterval);
+
+    const updateConversationInterval = async () => {
 
         if (incommingMessages.length >= botVars.minimumReplyTo) {
-            const thoughts = await considerConversationMiddleware(incommingMessages);
+            const thoughts = await considerConversationMiddleware(messages.slice(-10), incommingMessages);
 
             messages.push({ role: 'user', content: 'UPDATED MESSAGE HISTORY: \n' + incommingMessages.join('\n') });
             incommingMessages = [];
@@ -93,11 +109,24 @@ const main = async () => {
                 console.log('Attempting to chat with Ollama');
 
                 try {
+
+                    const initialResponse = await ollama.chat({
+                        model: 'llama3.2',
+                        system: systemPrompt + additionalSystemPrompting,
+                        messages: [...messages, {
+                            role: 'user', content: `These are the thoughts you have had about the conversation so far: \n ${thoughts} 
+                            -- Use your own words to synthesize your thoughts back into the conversation. The other participants do not need to know about your internal monologue.` }],
+                        stream: false,
+                    });
+
+                    const message = initialResponse.message.content;
+
                     const response = await ollama.chat({
                         model: 'llama3.2',
                         system: systemPrompt + additionalSystemPrompting,
-                        messages: [...messages, { role: 'user', content: `These are the thoughts you have had about the conversation so far: \n ${thoughts} 
-                            -- Use your own words to synthesize your thoughts back into the conversation. The other participants do not need to know about your internal monologue.` }],
+                        messages: [...messages, {
+                            role: 'user', content: `Pause for a moment and reflect. You were about to say: ''${message}'' Reword the thing you were about to say, and make sure it
+                            fits into the conversation.` }],
                         stream: false,
                     });
 
@@ -119,15 +148,15 @@ const main = async () => {
                     console.error('Error: ', e);
                 }
             } while (!(success || attempt >= maxAttempts));
-            setTimeout(tick, botVars.minimumReplyDelay);
+            setTimeout(updateConversationInterval, botVars.minimumReplyDelay);
 
         } else {
-            setTimeout(tick, 500);
+            setTimeout(updateConversationInterval, 500);
         }
 
     }
 
-    await tick();
+    await updateConversationInterval();
 
     bot.addListener('error', function (message) {
         console.error('ERROR: %s: %s', message.command, message.args.join(' '));
