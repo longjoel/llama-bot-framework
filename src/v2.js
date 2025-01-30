@@ -18,7 +18,7 @@ const botVars = {
     ircNick: argv[2] || process.env.IRC_NICK || 'llary',
     ircChannel: process.env.IRC_CHANNEL || '#bots',
     systemPrompt: process.env.PROMPT || 'Just do your best.',
-    minimumReplyTo: process.env.MINIMUM_REPLY_TO || 2,
+    minimumReplyTo: process.env.MINIMUM_REPLY_TO || 1,
     minimumReplyDelay: process.env.MINIMUM_REPLY_DELAY || 2000,
 }
 
@@ -47,6 +47,20 @@ Sending messages to the chat:
 - Do not respond to yourself.`;
 
 
+const considerConversationMiddleware = async (messages) => {
+
+
+    const response = await ollama.chat({
+        model: 'llama3.2',
+        messages: [{ role: 'user', content: 'Here are the new messages in the chat: \n' + messages.join('\n') },{ role: 'user', content: `Consider the the conversation and think out loud about it, what you can add to it` }],
+        stream: false,
+    });
+
+    console.log( response.message.content);
+    return response.message.content;
+
+};
+
 const main = async () => {
 
     var bot = new irc.Client(botVars.ircServer, nickname, {
@@ -65,6 +79,8 @@ const main = async () => {
     const tick = async () => {
 
         if (incommingMessages.length >= botVars.minimumReplyTo) {
+            const thoughts = await considerConversationMiddleware(incommingMessages);
+
             messages.push({ role: 'user', content: 'UPDATED MESSAGE HISTORY: \n' + incommingMessages.join('\n') });
             incommingMessages = [];
 
@@ -77,11 +93,11 @@ const main = async () => {
                 console.log('Attempting to chat with Ollama');
 
                 try {
-
                     const response = await ollama.chat({
                         model: 'llama3.2',
                         system: systemPrompt + additionalSystemPrompting,
-                        messages: messages,
+                        messages: [...messages, { role: 'user', content: `These are the thoughts you have had about the conversation so far: \n ${thoughts} 
+                            -- Use your own words to synthesize your thoughts back into the conversation. The other participants do not need to know about your internal monologue.` }],
                         stream: false,
                     });
 
