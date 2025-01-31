@@ -13,8 +13,6 @@ services:
       - OLLAMA_HOST=0.0.0.0
     networks:
       - llama-net
-    entrypoint: /bin/sh
-    command: -c "ollama pull llama3.2"
   
   ollama-webui:
     image: ghcr.io/open-webui/open-webui:main
