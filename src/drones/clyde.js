@@ -19,6 +19,8 @@
 
 import irc from 'irc';
 
+var messageHistory = [];
+
 var client = new irc.Client('localhost', 'clyde', {
     channels: ['#bots']
 });
@@ -26,16 +28,19 @@ var client = new irc.Client('localhost', 'clyde', {
 client.addListener('message', function (from, to, message) {
     if (message === ':history') {
         client.say('#bots', 'Here are the last 15 messages in the channel');
+        client.say('#bots', messageHistory.slice(-15).join('\n'));
     }
     else if (message.startsWith(':search')) {
         const term = message.split(' ')[1];
         client.say('#bots', `Searching for ${term} in the last 15 messages`);
+        const results = messageHistory.filter(msg => msg.includes(term));
+        client.say('#bots', results.join('\n'));
     }
     else if (message === ':help') {
         client.say('#bots', 'Available commands: :history, :search <term>, :help, :time, :weather, :hello, :goodbye, :quote, :joke, :fact, :roll, :flip, :ping, :news');
     }
     else if (message === ':time') {
-        client.say('#bots', 'The current time is 12:00 PM');
+        client.say('#bots', `The current time is ${new Date().toLocaleTimeString()}`);
     }
     else if (message === ':weather') {
         client.say('#bots', 'The current weather is sunny');
@@ -47,7 +52,12 @@ client.addListener('message', function (from, to, message) {
         client.say('#bots', 'Goodbye!');
     }
     else if (message === ':quote') {
-        client.say('#bots', 'This is a random quote');
+        fetch('https://dummyjson.com/quotes')
+            .then(res => res.json())
+            .then((data) => {
+                client.say('#bots', `This is a random quote: ${data.quotes[0].quote} -- ${data.quotes[0].author}`);
+
+            });
     }
     else if (message === ':joke') {
         client.say('#bots', 'This is a random joke');
