@@ -6,9 +6,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "alice":"node ./src/v2.js alice You are alice, a friendly and helpful assistant. You interact with humans via an IRC chat room.",
-    "steve":"node ./src/v1.js steve you are steve, you are a friendly computer program, you interact with humans via an IRC chat room.",
-    "phill":"node ./src/v1.js phill You are phill, you are pretending to be a human, don't let them know you are a computer program."
+    "alice": "node ./src/v2.js alice You are alice, a friendly and helpful assistant. You interact with humans via an IRC chat room.",
+    "steve": "node ./src/v2.js steve you are steve, you are a friendly computer program, you interact with humans via an IRC chat room.",
+    "phill": "node ./src/v1.js phill You are phill, you are pretending to be a human, don't let them know you are a computer program."
   },
   "repository": {
     "type": "git",
@@ -22,6 +22,11 @@
   "homepage": "https://github.com/longjoel/llama-bot-framework#readme",
   "dependencies": {
     "irc": "^0.5.2",
-    "ollama": "^0.5.12"
+    "ollama": "^0.5.12",
+    "text2wav": "^0.0.14",
+    "typescript": "^5.7.3"
+  },
+  "devDependencies": {
+    "@types/irc": "^0.5.4"
   }
 }

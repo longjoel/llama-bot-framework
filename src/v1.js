@@ -1,4 +1,4 @@
-import ollama from "ollama";
+import {Ollama} from "ollama";
 import irc from "irc";
 import { argv } from 'process';
 
@@ -12,6 +12,10 @@ const botVars = {
     minimumReplyTo: process.env.MINIMUM_REPLY_TO || 2,
     minimumReplyDelay: process.env.MINIMUM_REPLY_DELAY || 2000,
 }
+
+const ollama = new Ollama({
+    host: botVars.ollamaServer,
+});
 
 const nickname = botVars.ircNick;
 const systemPrompt = argv
