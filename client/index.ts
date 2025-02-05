@@ -1,4 +1,4 @@
-import irc from 'irc';
+import * as irc from 'irc';
 import { Ollama, Message } from 'ollama';
 
 
@@ -18,6 +18,7 @@ export interface ChatMessageHistory {
 
 export class BotFrameworkClient {
     ircClient: irc.Client;
+    ircChannel: string = '#bots';
     ollamaClient: Ollama;
     ollamaMessageHistory: Message[] = [];
     chatMessageHistory: ChatMessageHistory[] = [];
@@ -27,11 +28,11 @@ export class BotFrameworkClient {
     activityLevel: activityLevel = 'reactive';
     mood: mood;
     instructions: string[];
-    intervalHandle: NodeJS.Timeout;
+    replyTimerHandle: NodeJS.Timeout;
 
     baseInstructions() {
         return [
-            'You are a participant in a multi user chat room. Messages from the user will messages from the chat.',
+           `You are a participant in a multi user chat room ${this.ircChannel}. Messages from the user will messages from the chat.`,
             `Messages will be formatted as follows in JSON format: [{
                 "from": "username",
                 "to": "channel",
@@ -50,7 +51,15 @@ export class BotFrameworkClient {
     };
 
 
-    constructor(ircClient: irc.Client, ollamaClient: Ollama, name: string, thoughtPatterns: fnThought[], idleThoughts: string[], activityLevel: activityLevel, mood: mood, instructions: string[]) {
+    constructor(ircClient: irc.Client,
+        ollamaClient: Ollama,
+        name: string,
+        thoughtPatterns: fnThought[],
+        idleThoughts: string[],
+        activityLevel: activityLevel,
+        mood: mood,
+        instructions: string[]) {
+
         this.ircClient = ircClient;
         this.ollamaClient = ollamaClient;
         this.name = name;
@@ -65,7 +74,7 @@ export class BotFrameworkClient {
             this.chatMessageHistory.push({ from, to, message, timestamp: new Date().toISOString() });
         });
 
-        this.intervalHandle = setInterval(async () => {
+        this.replyTimerHandle = setInterval(async () => {
 
             // step 1 - build chat history to send to the ollama connection.
 
@@ -73,17 +82,9 @@ export class BotFrameworkClient {
 
             // step 2, iterate over the thought patterns and apply them to the chat history.
             this.ollamaMessageHistory.push({ content: convoHistory, role: 'user' });
-            let response = await this.ollamaClient.chat({ model:'llama3.2', messages: this.ollamaMessageHistory });
-            for(let i = 0; i < this.thoughtPatterns.length; i++) {  convoHistory
+            let response = await this.ollamaClient.chat({stream:false, model: 'llama3.2', messages: [{role:'system', content:this.instructions.join('\n')},{ content: convoHistory, role: 'user' }]});
 
-              //  response = await this.thoughtPatterns[i](response.message, this.chatMessageHistory, this.ollamaClient );
-
-                // if (response.content !== '<pass>') {
-                //     this.chatMessageHistory.push({ from: this.name, to: '#test', message: response.content, timestamp: new Date().toISOString() });
-                    
-                // }
-            }
-         
+            this.ircClient.say(this.ircChannel, response.message.content);
 
 
         }, 1000);
@@ -96,7 +97,7 @@ export class BotFrameworkClient {
     destroy() {
         this.ircClient.disconnect('bye', () => { process.exit(0) });
         this.ircClient.off('message', () => { });
-        clearInterval(this.intervalHandle);
+        clearInterval(this.replyTimerHandle);
     }
 
 
