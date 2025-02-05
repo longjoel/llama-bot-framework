@@ -1,59 +1,43 @@
-"use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function () { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function () { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (g && (g = 0, op[0] && (_ = 0)), _) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+export class BotFrameworkClient {
+    ircClient;
+    ircChannel = '#bots';
+    ollamaClient;
+    ollamaMessageHistory = [];
+    chatMessageHistory = [];
+    name = '';
+    thoughtPatterns;
+    idleThoughts;
+    activityLevel = 'reactive';
+    mood;
+    instructions;
+    replyTimerHandle;
+    isProcessing;
+    baseInstructions() {
+        return [
+            `You are a participant in a multi-user chat room called ${this.ircChannel}. 
+
+You will identify yourself in the chat as "${this.name}". 
+
+**Behavioral Instructions:**
+1. Respond to messages as if you were a human participant in the conversation.
+2. Do not reference or acknowledge that you are a bot. Act as though you are another person in the chat.
+3. You should contribute to the conversation naturally, like any other participant, while maintaining the tone and style of the ongoing discussion.
+4. Avoid responding to your own messages.
+5. If you do not wish to respond to a message, simply return a single message with the text "<pass>".
+6. You have a ${this.activityLevel} activity level, meaning you should contribute to the conversation at that rate.
+7. You have a ${this.mood} base mood, which should influence your tone (e.g., if you're in a good mood, you might sound upbeat, while in a neutral mood, you might be more casual).
+
+**General Guidelines:**
+- Your responses should blend in seamlessly with the ongoing conversation.
+- You are forbidden from impersonating other users or taking over their messages. Stay true to your own identity ("${this.name}") in all responses.
+- If the conversation includes any sensitive topics, your responses should remain appropriate and align with the general tone of the room.
+
+Do not worry about formatting or timestamps; just contribute to the discussion like any other person in the chat.
+`,
+        ];
     }
-};
-var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
-    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
-        if (ar || !(i in from)) {
-            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
-            ar[i] = from[i];
-        }
-    }
-    return to.concat(ar || Array.prototype.slice.call(from));
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.BotFrameworkClient = void 0;
-var BotFrameworkClient = /** @class */ (function () {
-    function BotFrameworkClient(ircClient, ollamaClient, name, thoughtPatterns, idleThoughts, activityLevel, mood, instructions) {
-        var _this = this;
-        this.ircChannel = '#bots';
-        this.ollamaMessageHistory = [];
-        this.chatMessageHistory = [];
-        this.name = '';
-        this.activityLevel = 'reactive';
+    ;
+    constructor(ircClient, ollamaClient, name, thoughtPatterns, idleThoughts, activityLevel, mood, instructions) {
         this.ircClient = ircClient;
         this.ollamaClient = ollamaClient;
         this.name = name;
@@ -61,53 +45,67 @@ var BotFrameworkClient = /** @class */ (function () {
         this.idleThoughts = idleThoughts;
         this.activityLevel = activityLevel;
         this.mood = mood;
-        this.instructions = __spreadArray(__spreadArray([], this.baseInstructions(), true), instructions, true);
-        this.ircClient.addListener('message', function (from, to, message) {
-            if (from === _this.name)
+        this.instructions = [...this.baseInstructions(), ...instructions];
+        this.isProcessing = false;
+        this.ircClient.addListener('message', (from, to, message) => {
+            console.log(from);
+            if (from === this.name)
                 return;
-            _this.chatMessageHistory.push({ from: from, to: to, message: message, timestamp: new Date().toISOString() });
+            this.chatMessageHistory.push({ from, to, message, timestamp: new Date().toISOString() });
         });
-        this.replyTimerHandle = setInterval(function () {
-            return __awaiter(_this, void 0, void 0, function () {
-                var convoHistory, response;
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
-                        case 0:
-                            convoHistory = JSON.stringify(this.chatMessageHistory.slice(-10));
-                            // step 2, iterate over the thought patterns and apply them to the chat history.
-                            this.ollamaMessageHistory.push({ content: convoHistory, role: 'user' });
-                            return [4 /*yield*/, this.ollamaClient.chat({ stream: false, model: 'llama3.2', messages: [{ role: 'system', content: this.instructions.join('\n') }, { content: convoHistory, role: 'user' }] })];
-                        case 1:
-                            response = _a.sent();
-                            this.ircClient.say(this.ircChannel, response.message.content);
-                            return [2 /*return*/];
-                    }
-                });
+        let baseInterval = 1000;
+        switch (this.activityLevel) {
+            case 'reactive':
+                baseInterval = 0; // reply immedately when mentioned.
+                break;
+            case 'idle':
+                break;
+            case 'proactive':
+                baseInterval = 1000 * 60; // 1 minute
+                break;
+            case 'random':
+                baseInterval = baseInterval + (1000 * (Math.random() * 60));
+                break;
+        }
+        this.replyTimerHandle = setInterval(() => {
+            if (this.isProcessing) {
+                return;
+            }
+            this.isProcessing = true;
+            // if we are reactive, only reply if the message 
+            if (this.activityLevel == 'reactive') {
+                if (!this.chatMessageHistory.filter(msg => msg.message.includes(this.name))) {
+                    return;
+                }
+            }
+            console.log(this.chatMessageHistory.at(-1)?.from, this.name);
+            // don't talk to yourself?
+            if (this.chatMessageHistory.at(-1)?.from === this.name) {
+                return;
+            }
+            // step 1 - build chat history to send to the ollama connection.
+            let convoHistory = JSON.stringify(this.chatMessageHistory.slice(-10));
+            // step 2, iterate over the thought patterns and apply them to the chat history.
+            this.ollamaMessageHistory.push({ content: convoHistory, role: 'user' });
+            this.ollamaClient.chat({
+                stream: false, model: 'llama3.2', messages: [
+                    { role: 'system', content: this.instructions.join('\n') },
+                    ...this.ollamaMessageHistory.slice(-5)
+                ]
+            }).then(response => {
+                if (!response.message.content.includes("<pass>")) {
+                    this.ollamaMessageHistory.push(response.message);
+                    this.ircClient.say(this.ircChannel, response.message.content);
+                    this.chatMessageHistory.push({ from: this.name, to: '', message: response.message.content, timestamp: new Date().toISOString() });
+                    this.isProcessing = false;
+                }
             });
-        }, 1000);
+        }, 1000 * 10);
     }
-    BotFrameworkClient.prototype.baseInstructions = function () {
-        return [
-            "You are a participant in a multi user chat room ".concat(this.ircChannel, ". Messages from the user will messages from the chat."),
-            "Messages will be formatted as follows in JSON format: [{\n                \"from\": \"username\",\n                \"to\": \"channel\",\n                \"message\": \"message\",\n                \"time\": \"timestamp\"}].",
-            'Respond as if you are responding to a room of people, instead of a single person.',
-            "You will identify yourself in the chat as \"".concat(this.name, "\"."),
-            'You are aware you are a bot. You do not know if other participants are bots or humans.',
-            'Do not impersonate or pretend to be another participant in the chat.',
-            "If you do not wish to respond to a message, return a single message with the text \"<pass>\".",
-            "You are forbidden from responding to your own messages.",
-            "You have a ".concat(this.activityLevel, " activity level."),
-            "You have a ".concat(this.mood, " base mood."),
-            'You are not responding to messages in real time, but are instead responding to messages in a batch.',
-        ];
-    };
     ;
-    ;
-    BotFrameworkClient.prototype.destroy = function () {
-        this.ircClient.disconnect('bye', function () { process.exit(0); });
-        this.ircClient.off('message', function () { });
+    destroy() {
+        this.ircClient.disconnect('bye', () => { process.exit(0); });
+        this.ircClient.off('message', () => { });
         clearInterval(this.replyTimerHandle);
-    };
-    return BotFrameworkClient;
-}());
-exports.BotFrameworkClient = BotFrameworkClient;
+    }
+}

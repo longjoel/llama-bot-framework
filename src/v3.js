@@ -1,3 +1,7 @@
+import util from 'util'
+
+util.log = console.log
+
 import { Ollama } from 'ollama';
 import irc from 'irc';
 import {BotFrameworkClient} from '../client/index.js';
@@ -5,7 +9,7 @@ import {BotFrameworkClient} from '../client/index.js';
 import { argv } from 'process';
 
 const botVars = {
-    ollamaServer: process.env.OLLAMA_SERVER || 'http://vault:11434',
+    ollamaServer: process.env.OLLAMA_SERVER || 'http://localhost:11434',
     ollamaApiKey: process.env.OLLAMA_API_KEY || null,
     ircServer: process.env.IRC_SERVER || 'vault',
     ircNick: argv[2] || process.env.IRC_NICK || 'llary',
@@ -29,7 +33,7 @@ const ircClient = new irc.Client(botVars.ircServer, botVars.ircNick, {
 });
 
 var remoteClient = new Ollama({
-    host: 'http://vault:11434',});
+    host: botVars.ollamaServer});
 
     /** ircClient, ollamaClient, name, thoughtPatterns, idleThoughts, activityLevel, mood, instructions */
 const bot = new BotFrameworkClient(ircClient, remoteClient, botVars.ircNick,[],[],'reactive','neutral',[]);
