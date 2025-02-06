@@ -10,8 +10,38 @@ export class BotFrameworkClient {
     activityLevel = 'reactive';
     mood;
     instructions;
-    replyTimerHandle;
+    baseInterval;
     isProcessing;
+    reactiveLoop() {
+        // if we are reactive, only reply if the message includes our name.
+        if (this.activityLevel == 'reactive') {
+            if (!this.chatMessageHistory.filter(msg => msg.message.includes(this.name))) {
+                return;
+            }
+        }
+        // don't talk to yourself?
+        if (!this.chatMessageHistory || this.chatMessageHistory.length == 0 || this.chatMessageHistory.at(-1)?.from === this.name) {
+            setTimeout(() => { this.reactiveLoop(); }, this.baseInterval);
+            return;
+        }
+        // step 1 - build chat history to send to the ollama connection.
+        let convoHistory = JSON.stringify(this.chatMessageHistory.slice(-10));
+        // step 2, iterate over the thought patterns and apply them to the chat history.
+        this.ollamaMessageHistory.push({ content: convoHistory, role: 'user' });
+        this.ollamaClient.chat({
+            stream: false, model: 'llama3.2', messages: [
+                { role: 'system', content: this.instructions.join('\n') },
+                ...this.ollamaMessageHistory.slice(-5)
+            ]
+        }).then(response => {
+            if (!response.message.content.includes("<pass>")) {
+                this.ollamaMessageHistory.push(response.message);
+                this.ircClient.say(this.ircChannel, response.message.content);
+                this.chatMessageHistory.push({ from: this.name, to: '', message: response.message.content, timestamp: new Date().toISOString() });
+            }
+            setTimeout(() => { this.reactiveLoop(); }, this.baseInterval);
+        });
+    }
     baseInstructions() {
         return [
             `You are a participant in a multi-user chat room called ${this.ircChannel}. 
@@ -53,59 +83,25 @@ Do not worry about formatting or timestamps; just contribute to the discussion l
                 return;
             this.chatMessageHistory.push({ from, to, message, timestamp: new Date().toISOString() });
         });
-        let baseInterval = 1000;
+        this.baseInterval = 1000;
         switch (this.activityLevel) {
             case 'reactive':
-                baseInterval = 0; // reply immedately when mentioned.
+                this.baseInterval = 500; // reply immedately when mentioned.
                 break;
             case 'idle':
                 break;
             case 'proactive':
-                baseInterval = 1000 * 60; // 1 minute
+                this.baseInterval = 1000 * 60; // 1 minute
                 break;
             case 'random':
-                baseInterval = baseInterval + (1000 * (Math.random() * 60));
+                this.baseInterval = this.baseInterval + (1000 * (Math.random() * 60));
                 break;
         }
-        this.replyTimerHandle = setInterval(() => {
-            if (this.isProcessing) {
-                return;
-            }
-            this.isProcessing = true;
-            // if we are reactive, only reply if the message 
-            if (this.activityLevel == 'reactive') {
-                if (!this.chatMessageHistory.filter(msg => msg.message.includes(this.name))) {
-                    return;
-                }
-            }
-            console.log(this.chatMessageHistory.at(-1)?.from, this.name);
-            // don't talk to yourself?
-            if (this.chatMessageHistory.at(-1)?.from === this.name) {
-                return;
-            }
-            // step 1 - build chat history to send to the ollama connection.
-            let convoHistory = JSON.stringify(this.chatMessageHistory.slice(-10));
-            // step 2, iterate over the thought patterns and apply them to the chat history.
-            this.ollamaMessageHistory.push({ content: convoHistory, role: 'user' });
-            this.ollamaClient.chat({
-                stream: false, model: 'llama3.2', messages: [
-                    { role: 'system', content: this.instructions.join('\n') },
-                    ...this.ollamaMessageHistory.slice(-5)
-                ]
-            }).then(response => {
-                if (!response.message.content.includes("<pass>")) {
-                    this.ollamaMessageHistory.push(response.message);
-                    this.ircClient.say(this.ircChannel, response.message.content);
-                    this.chatMessageHistory.push({ from: this.name, to: '', message: response.message.content, timestamp: new Date().toISOString() });
-                    this.isProcessing = false;
-                }
-            });
-        }, 1000 * 10);
+        this.reactiveLoop();
     }
     ;
     destroy() {
         this.ircClient.disconnect('bye', () => { process.exit(0); });
         this.ircClient.off('message', () => { });
-        clearInterval(this.replyTimerHandle);
     }
 }

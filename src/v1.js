@@ -1,3 +1,7 @@
+import util from 'util'
+
+util.log = console.log
+
 import {Ollama} from "ollama";
 import irc from "irc";
 import { argv } from 'process';
@@ -5,7 +9,7 @@ import { argv } from 'process';
 const botVars = {
     ollamaServer: process.env.OLLAMA_SERVER || 'http://localhost:11434',
     ollamaApiKey: process.env.OLLAMA_API_KEY || null,
-    ircServer: process.env.IRC_SERVER || 'localhost',
+    ircServer: process.env.IRC_SERVER || 'vault',
     ircNick: argv[2] || process.env.IRC_NICK || 'llary',
     ircChannel: process.env.IRC_CHANNEL || '#bots',
     systemPrompt: process.env.PROMPT || 'Just do your best.',
