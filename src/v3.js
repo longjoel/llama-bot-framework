@@ -4,9 +4,10 @@ util.log = console.log
 
 import { Ollama } from 'ollama';
 import irc from 'irc';
-import {BotFrameworkClient} from '../client/index.js';
-
+import { BotFrameworkClient } from '../client/index.js';
+import { spawn, spawnSync } from 'child_process';
 import { argv } from 'process';
+
 
 const botVars = {
     ollamaServer: process.env.OLLAMA_SERVER || 'http://localhost:11434',
@@ -21,19 +22,33 @@ const botVars = {
     pokeConversationInterval: process.env.POKE_CONVERSATION_INTERVAL || 1000 * 60 * 15,
 }
 
-const nickname = botVars.ircNick;
-const systemPrompt = argv
-    .join(' ')
-    .split(nickname)[1] || botVars.systemPrompt;
+
+spawn('ollama',['serve'], { detached: true});
+
+setTimeout(async () => {
+
+    spawnSync('ollama',['pull', 'llama3.2']);
+
+    const nickname = botVars.ircNick;
+    const systemPrompt = argv
+        .join(' ')
+        .split(nickname)[1] || botVars.systemPrompt;
 
 
-const ircClient = new irc.Client(botVars.ircServer, botVars.ircNick, {
-    debug: true,
-    channels: ['#bots'],
-});
+    const ircClient = new irc.Client(botVars.ircServer, botVars.ircNick, {
+        debug: true,
+        channels: ['#bots'],
+    });
 
-var remoteClient = new Ollama({
-    host: botVars.ollamaServer});
+    var remoteClient = new Ollama({
+        host: botVars.ollamaServer
+    });
+
+    await remoteClient.pull({ model: 'llama3.2', stream: false });
 
     /** ircClient, ollamaClient, name, thoughtPatterns, idleThoughts, activityLevel, mood, instructions */
-const bot = new BotFrameworkClient(ircClient, remoteClient, botVars.ircNick,[],[],'reactive','neutral',[]);
+    const bot = new BotFrameworkClient(ircClient, remoteClient, botVars.ircNick, [], [], 'reactive', 'neutral', []);
+
+}, 5000);
+
+

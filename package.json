@@ -6,9 +6,13 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "alice": "node ./src/v1.js alice You are alice, a friendly and helpful assistant. You interact with humans via an IRC chat room.",
-    "steve": "node ./src/v2.js steve you are steve, you are a friendly computer program, you interact with humans via an IRC chat room.",
-    "phill": "node ./src/v1.js phill You are phill, you are pretending to be a human, don't let them know you are a computer program."
+    "build":"tsc",
+    "alice": "node ./src/v3.js alice You are alice, a friendly and helpful assistant. You interact with humans via an IRC chat room.",
+    "steve": "node ./src/v3.js steve you are steve, you are a friendly computer program, you interact with humans via an IRC chat room.",
+    "phill": "node ./src/v3.js phill You are phill, you are pretending to be a human dont let them know you are a computer program.",
+    "podman:build": "podman build -t longjoel/llama-bot-fw .",
+    "podman:run-alice": "podman run --replace --name alice -it longjoel/llama-bot-fw bash -c `ollama pull llama3.2 && npm run alice`",
+    "podman:run-phill": "podman run --replace --name phill -it longjoel/llama-bot-fw bash -c `ollama pull llama3.2 && npm run phill`"
   },
   "repository": {
     "type": "git",
