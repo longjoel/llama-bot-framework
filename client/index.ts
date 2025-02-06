@@ -30,6 +30,7 @@ export class BotFrameworkClient {
     instructions: string[];
     baseInterval: number;
     isProcessing: boolean;
+    model:string;
 
     reactiveLoop() {
 
@@ -50,7 +51,7 @@ export class BotFrameworkClient {
         // step 2, iterate over the thought patterns and apply them to the chat history.
         this.ollamaMessageHistory.push({ content: convoHistory, role: 'user' });
         this.ollamaClient.chat({
-            stream: false, model: 'llama3.2', messages: [
+            stream: false, model:this.model, messages: [
                 { role: 'system', content: this.instructions.join('\n') },
                 ...this.ollamaMessageHistory.slice(-5)]
         }).then(response => {
@@ -100,7 +101,8 @@ Do not worry about formatting or timestamps; just contribute to the discussion l
         idleThoughts: string[],
         activityLevel: activityLevel,
         mood: mood,
-        instructions: string[]) {
+        instructions: string[],
+    model:string) {
 
         this.ircClient = ircClient;
         this.ollamaClient = ollamaClient;
@@ -112,6 +114,7 @@ Do not worry about formatting or timestamps; just contribute to the discussion l
         this.instructions = [...this.baseInstructions(), ...instructions];
 
         this.isProcessing = false;
+        this.model=model;
 
         this.ircClient.addListener('message', (from, to, message) => {
             console.log(from);

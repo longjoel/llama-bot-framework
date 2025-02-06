@@ -16,6 +16,7 @@ const botVars = {
     ircNick: argv[2] || process.env.IRC_NICK || 'llary',
     ircChannel: process.env.IRC_CHANNEL || '#bots',
     systemPrompt: process.env.PROMPT || 'Just do your best.',
+    model: process.env.MODEL || 'llama3.2',
     minimumReplyTo: process.env.MINIMUM_REPLY_TO || 1,
     minimumReplyDelay: process.env.MINIMUM_REPLY_DELAY || 2000,
     pokeConversationMessage: process.env.POKE_CONVERSATION_MESSAGE || 'It got quiet in here. What\'s going on?',
@@ -23,11 +24,11 @@ const botVars = {
 }
 
 
-spawn('ollama',['serve'], { detached: true});
+spawn('ollama', ['serve'], { detached: true });
 
 setTimeout(async () => {
 
-    spawnSync('ollama',['pull', 'llama3.2']);
+    // spawnSync('ollama', ['pull', botVars.model]);
 
     const nickname = botVars.ircNick;
     const systemPrompt = argv
@@ -44,10 +45,10 @@ setTimeout(async () => {
         host: botVars.ollamaServer
     });
 
-    await remoteClient.pull({ model: 'llama3.2', stream: false });
+    await remoteClient.pull({ model: botVars.model, stream: false });
 
     /** ircClient, ollamaClient, name, thoughtPatterns, idleThoughts, activityLevel, mood, instructions */
-    const bot = new BotFrameworkClient(ircClient, remoteClient, botVars.ircNick, [], [], 'reactive', 'neutral', []);
+    const bot = new BotFrameworkClient(ircClient, remoteClient, botVars.ircNick, [], [], 'reactive', 'neutral', [botVars.systemPrompt], botVars.model);
 
 }, 5000);
 

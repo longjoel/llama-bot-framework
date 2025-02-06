@@ -12,6 +12,7 @@ export class BotFrameworkClient {
     instructions;
     baseInterval;
     isProcessing;
+    model;
     reactiveLoop() {
         // if we are reactive, only reply if the message includes our name.
         if (this.activityLevel == 'reactive') {
@@ -29,7 +30,7 @@ export class BotFrameworkClient {
         // step 2, iterate over the thought patterns and apply them to the chat history.
         this.ollamaMessageHistory.push({ content: convoHistory, role: 'user' });
         this.ollamaClient.chat({
-            stream: false, model: 'llama3.2', messages: [
+            stream: false, model: this.model, messages: [
                 { role: 'system', content: this.instructions.join('\n') },
                 ...this.ollamaMessageHistory.slice(-5)
             ]
@@ -67,7 +68,7 @@ Do not worry about formatting or timestamps; just contribute to the discussion l
         ];
     }
     ;
-    constructor(ircClient, ollamaClient, name, thoughtPatterns, idleThoughts, activityLevel, mood, instructions) {
+    constructor(ircClient, ollamaClient, name, thoughtPatterns, idleThoughts, activityLevel, mood, instructions, model) {
         this.ircClient = ircClient;
         this.ollamaClient = ollamaClient;
         this.name = name;
@@ -77,6 +78,7 @@ Do not worry about formatting or timestamps; just contribute to the discussion l
         this.mood = mood;
         this.instructions = [...this.baseInstructions(), ...instructions];
         this.isProcessing = false;
+        this.model = model;
         this.ircClient.addListener('message', (from, to, message) => {
             console.log(from);
             if (from === this.name)

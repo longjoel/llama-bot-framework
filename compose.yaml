@@ -2,9 +2,18 @@ services:
   alice:
     image: longjoel/llama-bot-fw
     container_name: alice
-    command: npm run alice
-    
-  phill:
-    image: longjoel/llama-bot-fw
-    container_name: phill
-    command: npm run phill
+    command: node ./src/v3.js
+    environment:
+      OLLAMA_SERVER: http://localhost:11434
+      IRC_SERVER: localhost
+      IRC_NICK: the_real_alice
+      MODEL: phi4
+      PROMPT: 'pick on pifreak relentlessly.'
+    volumes:
+      - ollama_app:/root/.ollama
+  # phill:
+  #   image: longjoel/llama-bot-fw
+  #   container_name: phill
+  #   command: npm run phill
+volumes:
+  ollama_app:

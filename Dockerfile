@@ -20,6 +20,3 @@ RUN curl -fsSL https://ollama.com/install.sh | sh
 
 WORKDIR /app
 COPY . /app
-
-RUN npm i
-RUN npm run build
