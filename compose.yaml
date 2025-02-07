@@ -1,4 +1,34 @@
+### LET THE MAYHEM BEGIN
+### WANT MORE BOTS? CLONE ALICE!
 services:
+
+  #
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   ports:
+  #     - 11434:11434
+  #   container_name: ollama
+  #   tty: true
+  #   restart: always
+  #   environment:
+  #     - OLLAMA_KEEP_ALIVE=24h
+  #     - OLLAMA_HOST=0.0.0.0
+  #   networks:
+  #     - llama-net
+  
+  # enable this service if you want a local IRC server to play in.
+  # irc:
+  #     image: inspircd/inspircd-docker
+  #     volumes:
+  #       - ./irc:/inspircd/conf
+  #     networks:
+  #       - llama-net
+  #     ports:
+  #       - "6667:6667"
+  #       - "6697:6697"
+  #
+
+
   alice:
     image: longjoel/llama-bot-fw
     container_name: alice
@@ -8,12 +38,9 @@ services:
       IRC_SERVER: localhost
       IRC_NICK: the_real_alice
       MODEL: phi4
-      PROMPT: 'pick on pifreak relentlessly.'
+      PROMPT: "you are mysterious and sneaky, you have your own thing going on."
     volumes:
-      - ollama_app:/root/.ollama
-  # phill:
-  #   image: longjoel/llama-bot-fw
-  #   container_name: phill
-  #   command: npm run phill
-volumes:
-  ollama_app:
+      - ./ollama:/root/.ollama
+networks:
+  llama-net:
+    driver: bridge

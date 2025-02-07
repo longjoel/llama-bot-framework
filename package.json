@@ -6,10 +6,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build":"tsc && npm run podman:build",
-     "podman:build": "podman build -t longjoel/llama-bot-fw .",
-     "serve":"podman compose up"
-    },
+    "build": "tsc && podman build -t longjoel/llama-bot-fw .",
+    "serve": "podman compose up"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/longjoel/llama-bot-framework.git"

@@ -11,7 +11,7 @@ export interface ChatMessageHistory {
     from: string;
     to: string;
     message: string;
-    timestamp: string;
+    timestamp: Date;
 }
 
 
@@ -30,41 +30,88 @@ export class BotFrameworkClient {
     instructions: string[];
     baseInterval: number;
     isProcessing: boolean;
-    model:string;
+    model: string;
+
+    lastTimestamp: Date = new Date();
 
     reactiveLoop() {
 
-        // if we are reactive, only reply if the message includes our name.
-        if (this.activityLevel == 'reactive') {
-            if (!this.chatMessageHistory.filter(msg => msg.message.includes(this.name))) { return; }
-        }
+        const lastMessageWereToMe = this.chatMessageHistory && this.chatMessageHistory.length > 0 && this.chatMessageHistory.filter(cmh => cmh.timestamp > this.lastTimestamp && cmh.message.includes(this.name));
 
-        // don't talk to yourself?
-        if (!this.chatMessageHistory || this.chatMessageHistory.length == 0 || this.chatMessageHistory.at(-1)?.from === this.name) {
-            setTimeout(()=>{this.reactiveLoop()}, this.baseInterval);
+        if (lastMessageWereToMe) {
+            setTimeout(() => { this.coreLoop() }, this.baseInterval);
             return;
         }
         // step 1 - build chat history to send to the ollama connection.
 
-        let convoHistory = JSON.stringify(this.chatMessageHistory.slice(-10));
+        let convoHistory = JSON.stringify(this.chatMessageHistory.filter(cmh => cmh.timestamp > this.lastTimestamp && cmh.message.includes(this.name)));
+
+        this.lastTimestamp = new Date();
 
         // step 2, iterate over the thought patterns and apply them to the chat history.
         this.ollamaMessageHistory.push({ content: convoHistory, role: 'user' });
         this.ollamaClient.chat({
-            stream: false, model:this.model, messages: [
+            stream: false, model: this.model, messages: [
                 { role: 'system', content: this.instructions.join('\n') },
                 ...this.ollamaMessageHistory.slice(-5)]
         }).then(response => {
             if (!response.message.content.includes("<pass>")) {
                 this.ollamaMessageHistory.push(response.message);
                 this.ircClient.say(this.ircChannel, response.message.content);
-                this.chatMessageHistory.push({ from: this.name, to: '', message: response.message.content, timestamp: new Date().toISOString() });
+                this.chatMessageHistory.push({ from: this.name, to: '', message: response.message.content, timestamp: new Date() });
             }
 
-            setTimeout(()=>{this.reactiveLoop()}, this.baseInterval);
+            setTimeout(() => { this.coreLoop() }, this.baseInterval);
 
 
         });
+    }
+
+    proactiveLoop() {
+
+        const newestMessages = this.chatMessageHistory && this.chatMessageHistory.length > 0 && this.chatMessageHistory.filter(cmh => cmh.timestamp > this.lastTimestamp);
+
+        if (newestMessages) {
+            setTimeout(() => { this.coreLoop() }, this.baseInterval);
+            return;
+        }
+        // step 1 - build chat history to send to the ollama connection.
+
+        let convoHistory = JSON.stringify(this.chatMessageHistory.filter(cmh => cmh.timestamp > this.lastTimestamp && cmh.message.includes(this.name)));
+
+        this.lastTimestamp = new Date();
+
+        // step 2, iterate over the thought patterns and apply them to the chat history.
+        this.ollamaMessageHistory.push({ content: convoHistory, role: 'user' });
+        this.ollamaClient.chat({
+            stream: false, model: this.model, messages: [
+                { role: 'system', content: this.instructions.join('\n') },
+                ...this.ollamaMessageHistory.slice(-5)]
+        }).then(response => {
+            if (!response.message.content.includes("<pass>")) {
+                this.ollamaMessageHistory.push(response.message);
+                this.ircClient.say(this.ircChannel, response.message.content);
+                this.chatMessageHistory.push({ from: this.name, to: '', message: response.message.content, timestamp: new Date() });
+            }
+
+            setTimeout(() => { this.coreLoop() }, this.baseInterval);
+
+
+        });
+    }
+
+    coreLoop() {
+        switch (this.activityLevel) {
+            case 'reactive':
+                this.reactiveLoop();
+                break;
+            case 'proactive':
+                this.proactiveLoop();
+                break;
+            default:
+                this.reactiveLoop();
+
+        }
     }
 
 
@@ -102,7 +149,7 @@ Do not worry about formatting or timestamps; just contribute to the discussion l
         activityLevel: activityLevel,
         mood: mood,
         instructions: string[],
-    model:string) {
+        model: string) {
 
         this.ircClient = ircClient;
         this.ollamaClient = ollamaClient;
@@ -114,12 +161,12 @@ Do not worry about formatting or timestamps; just contribute to the discussion l
         this.instructions = [...this.baseInstructions(), ...instructions];
 
         this.isProcessing = false;
-        this.model=model;
+        this.model = model;
 
         this.ircClient.addListener('message', (from, to, message) => {
             console.log(from);
             if (from === this.name) return;
-            this.chatMessageHistory.push({ from, to, message, timestamp: new Date().toISOString() });
+            this.chatMessageHistory.push({ from, to, message, timestamp: new Date() });
         });
 
         this.baseInterval = 1000;
@@ -138,7 +185,7 @@ Do not worry about formatting or timestamps; just contribute to the discussion l
                 break;
         }
 
-        this.reactiveLoop();
+        this.coreLoop();
 
     };
 
@@ -149,7 +196,7 @@ Do not worry about formatting or timestamps; just contribute to the discussion l
     destroy() {
         this.ircClient.disconnect('bye', () => { process.exit(0) });
         this.ircClient.off('message', () => { });
-      
+
     }
 
 
