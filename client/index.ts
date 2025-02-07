@@ -34,24 +34,42 @@ export class BotFrameworkClient {
 
     lastTimestamp: Date = new Date();
 
+    /**
+     * So we're just gonna kind of chill here and see 
+     * if our name is brought up. If it is, great, 
+     * let's generate a completion, have a brain thought.
+     * 
+     * @returns {void}
+     */
     reactiveLoop() {
 
-        const lastMessageWereToMe = this.chatMessageHistory && this.chatMessageHistory.length > 0 && this.chatMessageHistory.filter(cmh => cmh.timestamp > this.lastTimestamp && cmh.message.includes(this.name));
 
-        if (lastMessageWereToMe) {
+        // what are the last messages that are applicable to me?
+        const lastMessagesToMe = this.chatMessageHistory
+            && this.chatMessageHistory.length > 0
+            && this.chatMessageHistory.filter(cmh => cmh.timestamp > this.lastTimestamp
+                && cmh.message.includes(this.name));
+
+
+        // nothing for me in the messages, just keep listening.
+        if (!lastMessagesToMe) {
             setTimeout(() => { this.coreLoop() }, this.baseInterval);
             return;
         }
-        // step 1 - build chat history to send to the ollama connection.
+        // get incomming messages from the chat history
+        let convoHistory = JSON.stringify(this.chatMessageHistory.filter(cmh => cmh.timestamp > this.lastTimestamp));
 
-        let convoHistory = JSON.stringify(this.chatMessageHistory.filter(cmh => cmh.timestamp > this.lastTimestamp && cmh.message.includes(this.name)));
-
+        // reset the last timestamp.
         this.lastTimestamp = new Date();
 
-        // step 2, iterate over the thought patterns and apply them to the chat history.
+        // add the new conversation history to the message history.
         this.ollamaMessageHistory.push({ content: convoHistory, role: 'user' });
+
+        // do the chat!
         this.ollamaClient.chat({
-            stream: false, model: this.model, messages: [
+            stream: false, 
+            model: this.model, 
+            messages: [
                 { role: 'system', content: this.instructions.join('\n') },
                 ...this.ollamaMessageHistory.slice(-5)]
         }).then(response => {
@@ -69,22 +87,32 @@ export class BotFrameworkClient {
 
     proactiveLoop() {
 
-        const newestMessages = this.chatMessageHistory && this.chatMessageHistory.length > 0 && this.chatMessageHistory.filter(cmh => cmh.timestamp > this.lastTimestamp);
+      
+        // what are the last messages that are applicable to me?
+        const lastMessagesToMe = this.chatMessageHistory
+            && this.chatMessageHistory.length > 0
+            && this.chatMessageHistory.filter(cmh => cmh.timestamp > this.lastTimestamp);
 
-        if (newestMessages) {
+
+        // nothing for me in the messages, just keep listening.
+        if (!lastMessagesToMe) {
             setTimeout(() => { this.coreLoop() }, this.baseInterval);
             return;
         }
-        // step 1 - build chat history to send to the ollama connection.
+        // get incomming messages from the chat history
+        let convoHistory = JSON.stringify(this.chatMessageHistory.filter(cmh => cmh.timestamp > this.lastTimestamp));
 
-        let convoHistory = JSON.stringify(this.chatMessageHistory.filter(cmh => cmh.timestamp > this.lastTimestamp && cmh.message.includes(this.name)));
-
+        // reset the last timestamp.
         this.lastTimestamp = new Date();
 
-        // step 2, iterate over the thought patterns and apply them to the chat history.
+        // add the new conversation history to the message history.
         this.ollamaMessageHistory.push({ content: convoHistory, role: 'user' });
+
+        // do the chat!
         this.ollamaClient.chat({
-            stream: false, model: this.model, messages: [
+            stream: false, 
+            model: this.model, 
+            messages: [
                 { role: 'system', content: this.instructions.join('\n') },
                 ...this.ollamaMessageHistory.slice(-5)]
         }).then(response => {
