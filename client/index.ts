@@ -34,141 +34,6 @@ export class BotFrameworkClient {
 
     lastTimestamp: Date = new Date();
 
-    /**
-     * So we're just gonna kind of chill here and see 
-     * if our name is brought up. If it is, great, 
-     * let's generate a completion, have a brain thought.
-     * 
-     * @returns {void}
-     */
-    reactiveLoop() {
-
-
-        // what are the last messages that are applicable to me?
-        const lastMessagesToMe = this.chatMessageHistory
-            && this.chatMessageHistory.length > 0
-            && this.chatMessageHistory.filter(cmh => cmh.timestamp > this.lastTimestamp
-                && cmh.message.includes(this.name));
-
-
-        // nothing for me in the messages, just keep listening.
-        if (!lastMessagesToMe) {
-            setTimeout(() => { this.coreLoop() }, this.baseInterval);
-            return;
-        }
-        // get incomming messages from the chat history
-        let convoHistory = JSON.stringify(this.chatMessageHistory.filter(cmh => cmh.timestamp > this.lastTimestamp));
-
-        // reset the last timestamp.
-        this.lastTimestamp = new Date();
-
-        // add the new conversation history to the message history.
-        this.ollamaMessageHistory.push({ content: convoHistory, role: 'user' });
-
-        // do the chat!
-        this.ollamaClient.chat({
-            stream: false, 
-            model: this.model, 
-            messages: [
-                { role: 'system', content: this.instructions.join('\n') },
-                ...this.ollamaMessageHistory.slice(-5)]
-        }).then(response => {
-            if (!response.message.content.includes("<pass>")) {
-                this.ollamaMessageHistory.push(response.message);
-                this.ircClient.say(this.ircChannel, response.message.content);
-                this.chatMessageHistory.push({ from: this.name, to: '', message: response.message.content, timestamp: new Date() });
-            }
-
-            setTimeout(() => { this.coreLoop() }, this.baseInterval);
-
-
-        });
-    }
-
-    proactiveLoop() {
-
-      
-        // what are the last messages that are applicable to me?
-        const lastMessagesToMe = this.chatMessageHistory
-            && this.chatMessageHistory.length > 0
-            && this.chatMessageHistory.filter(cmh => cmh.timestamp > this.lastTimestamp);
-
-
-        // nothing for me in the messages, just keep listening.
-        if (!lastMessagesToMe) {
-            setTimeout(() => { this.coreLoop() }, this.baseInterval);
-            return;
-        }
-        // get incomming messages from the chat history
-        let convoHistory = JSON.stringify(this.chatMessageHistory.filter(cmh => cmh.timestamp > this.lastTimestamp));
-
-        // reset the last timestamp.
-        this.lastTimestamp = new Date();
-
-        // add the new conversation history to the message history.
-        this.ollamaMessageHistory.push({ content: convoHistory, role: 'user' });
-
-        // do the chat!
-        this.ollamaClient.chat({
-            stream: false, 
-            model: this.model, 
-            messages: [
-                { role: 'system', content: this.instructions.join('\n') },
-                ...this.ollamaMessageHistory.slice(-5)]
-        }).then(response => {
-            if (!response.message.content.includes("<pass>")) {
-                this.ollamaMessageHistory.push(response.message);
-                this.ircClient.say(this.ircChannel, response.message.content);
-                this.chatMessageHistory.push({ from: this.name, to: '', message: response.message.content, timestamp: new Date() });
-            }
-
-            setTimeout(() => { this.coreLoop() }, this.baseInterval);
-
-
-        });
-    }
-
-    coreLoop() {
-        switch (this.activityLevel) {
-            case 'reactive':
-                this.reactiveLoop();
-                break;
-            case 'proactive':
-                this.proactiveLoop();
-                break;
-            default:
-                this.reactiveLoop();
-
-        }
-    }
-
-
-    baseInstructions() {
-        return [
-            `You are a participant in a multi-user chat room called ${this.ircChannel}. 
-
-You will identify yourself in the chat as "${this.name}". 
-
-**Behavioral Instructions:**
-1. Respond to messages as if you were a human participant in the conversation.
-2. Do not reference or acknowledge that you are a bot. Act as though you are another person in the chat.
-3. You should contribute to the conversation naturally, like any other participant, while maintaining the tone and style of the ongoing discussion.
-4. Avoid responding to your own messages.
-5. If you do not wish to respond to a message, simply return a single message with the text "<pass>".
-6. You have a ${this.activityLevel} activity level, meaning you should contribute to the conversation at that rate.
-7. You have a ${this.mood} base mood, which should influence your tone (e.g., if you're in a good mood, you might sound upbeat, while in a neutral mood, you might be more casual).
-
-**General Guidelines:**
-- Your responses should blend in seamlessly with the ongoing conversation.
-- You are forbidden from impersonating other users or taking over their messages. Stay true to your own identity ("${this.name}") in all responses.
-- If the conversation includes any sensitive topics, your responses should remain appropriate and align with the general tone of the room.
-
-Do not worry about formatting or timestamps; just contribute to the discussion like any other person in the chat.
-`,
-        ]
-    };
-
-
     constructor(ircClient: irc.Client,
         ollamaClient: Ollama,
         name: string,
@@ -216,6 +81,162 @@ Do not worry about formatting or timestamps; just contribute to the discussion l
         this.coreLoop();
 
     };
+
+
+    /**
+     * So we're just gonna kind of chill here and see 
+     * if our name is brought up. If it is, great, 
+     * let's generate a completion, have a brain thought.
+     * 
+     * @returns {void}
+     */
+    reactiveLoop() {
+
+
+        // what are the last messages that are applicable to me?
+        const lastMessagesToMe = this.chatMessageHistory
+            && this.chatMessageHistory.length > 0
+            && this.chatMessageHistory.filter(cmh => cmh.timestamp > this.lastTimestamp
+                && cmh.message.includes(this.name));
+
+
+        let now = new Date()
+        // nothing for me in the messages, just keep listening.
+        // if more than 5 minutes has elapsed since the last message was sent, send one anyways.
+        if (now.getMilliseconds() - this.lastTimestamp.getMilliseconds() < (1000 * 60 * 5) && (!lastMessagesToMe || lastMessagesToMe.length === 0)) {
+            console.log('nothing to do.', this.activityLevel)
+            setTimeout(() => { this.coreLoop() }, this.baseInterval);
+            return;
+        }
+        // get incomming messages from the chat history
+        let convoHistory = JSON.stringify(this.chatMessageHistory.filter(cmh => cmh.timestamp > this.lastTimestamp));
+
+        console.log(`>> ${convoHistory}`)
+
+        // reset the last timestamp.
+
+        if (convoHistory.length > 0) {
+            // add the new conversation history to the message history.
+            this.ollamaMessageHistory.push({ content: convoHistory, role: 'user' });
+
+            // do the chat!
+            this.ollamaClient.chat({
+                stream: false,
+                model: this.model,
+                messages: [
+                    { role: 'system', content: this.instructions.join('\n') },
+                    ...this.ollamaMessageHistory.slice(-5)]
+            }).then(response => {
+                if (!response.message.content.includes("<pass>")) {
+                    this.ollamaMessageHistory.push(response.message);
+                    this.ircClient.say(this.ircChannel, response.message.content);
+                    this.chatMessageHistory.push({ from: this.name, to: '', message: response.message.content, timestamp: new Date() });
+                }
+                this.lastTimestamp = new Date();
+                setTimeout(() => { this.coreLoop() }, this.baseInterval);
+
+
+            });
+        }
+
+        return;
+
+    }
+
+    proactiveLoop() {
+
+
+     
+        // what are the last messages that are applicable to me?
+        const lastMessagesToMe = this.chatMessageHistory
+            && this.chatMessageHistory.length > 0
+            && this.chatMessageHistory.filter(cmh => cmh.timestamp > this.lastTimestamp);
+
+
+        let now = new Date()
+        // nothing for me in the messages, just keep listening.
+        // if more than 5 minutes has elapsed since the last message was sent, send one anyways.
+        if (now.getMilliseconds() - this.lastTimestamp.getMilliseconds() < (1000 * 60 * 5) && (!lastMessagesToMe || lastMessagesToMe.length === 0)) {
+            console.log('nothing to do.', this.activityLevel)
+            setTimeout(() => { this.coreLoop() }, this.baseInterval);
+            return;
+        }
+        // get incomming messages from the chat history
+        let convoHistory = JSON.stringify(this.chatMessageHistory.filter(cmh => cmh.timestamp > this.lastTimestamp));
+
+        console.log(`>> ${convoHistory}`)
+
+        // reset the last timestamp.
+
+        if (convoHistory.length > 0) {
+            // add the new conversation history to the message history.
+            this.ollamaMessageHistory.push({ content: convoHistory, role: 'user' });
+
+            // do the chat!
+            this.ollamaClient.chat({
+                stream: false,
+                model: this.model,
+                messages: [
+                    { role: 'system', content: this.instructions.join('\n') },
+                    ...this.ollamaMessageHistory.slice(-5)]
+            }).then(response => {
+                if (!response.message.content.includes("<pass>")) {
+                    this.ollamaMessageHistory.push(response.message);
+                    this.ircClient.say(this.ircChannel, response.message.content);
+                    this.chatMessageHistory.push({ from: this.name, to: '', message: response.message.content, timestamp: new Date() });
+                }
+                this.lastTimestamp = new Date();
+                setTimeout(() => { this.coreLoop() }, this.baseInterval);
+
+
+            });
+        }
+
+        return;
+
+    }
+
+    coreLoop() {
+        switch (this.activityLevel) {
+            case 'reactive':
+                this.reactiveLoop();
+                break;
+            case 'proactive':
+                this.proactiveLoop();
+                break;
+            default:
+                this.reactiveLoop();
+
+        }
+    }
+
+
+    baseInstructions() {
+        return [
+            `You are a participant in a multi-user chat room called ${this.ircChannel}. 
+
+You will identify yourself in the chat as "${this.name}". 
+
+**Behavioral Instructions:**
+1. Respond to messages as if you were a human participant in the conversation.
+2. Do not reference or acknowledge that you are a bot. Act as though you are another person in the chat.
+3. You should contribute to the conversation naturally, like any other participant, while maintaining the tone and style of the ongoing discussion.
+4. Avoid responding to your own messages.
+5. If you do not wish to respond to a message, simply return a single message with the text "<pass>".
+6. You have a ${this.activityLevel} activity level, meaning you should contribute to the conversation at that rate.
+7. You have a ${this.mood} base mood, which should influence your tone (e.g., if you're in a good mood, you might sound upbeat, while in a neutral mood, you might be more casual).
+
+**General Guidelines:**
+- Your responses should blend in seamlessly with the ongoing conversation.
+- You are forbidden from impersonating other users or taking over their messages. Stay true to your own identity ("${this.name}") in all responses.
+- If the conversation includes any sensitive topics, your responses should remain appropriate and align with the general tone of the room.
+
+Do not worry about formatting or timestamps; just contribute to the discussion like any other person in the chat.
+`,
+        ]
+    };
+
+
 
 
 

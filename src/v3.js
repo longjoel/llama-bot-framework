@@ -21,6 +21,7 @@ const botVars = {
     minimumReplyDelay: process.env.MINIMUM_REPLY_DELAY || 2000,
     pokeConversationMessage: process.env.POKE_CONVERSATION_MESSAGE || 'It got quiet in here. What\'s going on?',
     pokeConversationInterval: process.env.POKE_CONVERSATION_INTERVAL || 1000 * 60 * 15,
+    activityLevel: process.env.ACTIVITY || 'proactive'
 }
 
 let remoteClient = null;
@@ -38,17 +39,16 @@ const main = () => {
     });
 
     /** ircClient, ollamaClient, name, thoughtPatterns, idleThoughts, activityLevel, mood, instructions */
-    const bot = new BotFrameworkClient(ircClient, remoteClient, botVars.ircNick, [], [], 'reactive', 'neutral', [botVars.systemPrompt], botVars.model);
+    const bot = new BotFrameworkClient(ircClient, 
+        remoteClient, 
+        botVars.ircNick, 
+        [], [], botVars.activityLevel, 'neutral', [botVars.systemPrompt], botVars.model);
 }
 
 
 if (process.env.OLLAMA_HOIST) {
 
     spawn('ollama', ['serve'], { detached: true });
-
-   
-
-
     setTimeout(async () => {
 
         remoteClient = new Ollama({
