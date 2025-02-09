@@ -236,22 +236,9 @@ Do not worry about formatting or timestamps; just contribute to the discussion l
         ]
     };
 
-
-
-
-
-
-
     destroy() {
         this.ircClient.disconnect('bye', () => { process.exit(0) });
         this.ircClient.off('message', () => { });
 
     }
-
-
-
-
-
-
-
 }
