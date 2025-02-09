@@ -1,46 +1,44 @@
 ### LET THE MAYHEM BEGIN
 ### WANT MORE BOTS? CLONE ALICE!
 services:
-
-  #
-  # ollama:
-  #   image: ollama/ollama:latest
-  #   ports:
-  #     - 11434:11434
-  #   container_name: ollama
-  #   tty: true
-  #   restart: always
-  #   environment:
-  #     - OLLAMA_KEEP_ALIVE=24h
-  #     - OLLAMA_HOST=0.0.0.0
-  #   networks:
-  #     - llama-net
-  
-  # enable this service if you want a local IRC server to play in.
-  # irc:
-  #     image: inspircd/inspircd-docker
-  #     volumes:
-  #       - ./irc:/inspircd/conf
-  #     networks:
-  #       - llama-net
-  #     ports:
-  #       - "6667:6667"
-  #       - "6697:6697"
-  #
-
-
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - 11434:11434
+    container_name: ollama
+    tty: true
+    restart: always
+    environment:
+      - OLLAMA_KEEP_ALIVE=24h
+      - OLLAMA_HOST=0.0.0.0
+    networks:
+      - llama-net
+  #enable this service if you want a local IRC server to play in.
+  inspircd-docker:
+    container_name: inspircd
+    image: inspircd/inspircd-docker
+    ports:
+      - 6667:6667
+    volumes:
+      - ./irc:/inspircd/conf/
+    restart: unless-stopped
+    networks:
+      - llama-net
   alice:
-    image: longjoel/llama-bot-fw
+    image: localhost/longjoel/llama-bot-fw
     container_name: alice
     command: node ./src/v3.js
     environment:
       OLLAMA_SERVER: http://localhost:11434
       IRC_SERVER: localhost
-      IRC_NICK: the_real_alice
-      MODEL: phi4
+      IRC_NICK: alice
+      MODEL: llama3.2
       PROMPT: "you are mysterious and sneaky, you have your own thing going on."
+      OLLAMA_HOIST: true
     volumes:
       - ./ollama:/root/.ollama
+      - .:/app
+    networks:
+      - llama-net
 networks:
   llama-net:
-    driver: bridge

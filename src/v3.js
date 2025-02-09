@@ -23,13 +23,9 @@ const botVars = {
     pokeConversationInterval: process.env.POKE_CONVERSATION_INTERVAL || 1000 * 60 * 15,
 }
 
+let remoteClient = null;
 
-spawn('ollama', ['serve'], { detached: true });
-
-setTimeout(async () => {
-
-    // spawnSync('ollama', ['pull', botVars.model]);
-
+const main = () => {
     const nickname = botVars.ircNick;
     const systemPrompt = argv
         .join(' ')
@@ -41,15 +37,34 @@ setTimeout(async () => {
         channels: ['#bots'],
     });
 
-    var remoteClient = new Ollama({
-        host: botVars.ollamaServer
-    });
-
-    await remoteClient.pull({ model: botVars.model, stream: false });
-
     /** ircClient, ollamaClient, name, thoughtPatterns, idleThoughts, activityLevel, mood, instructions */
     const bot = new BotFrameworkClient(ircClient, remoteClient, botVars.ircNick, [], [], 'reactive', 'neutral', [botVars.systemPrompt], botVars.model);
+}
 
-}, 5000);
+
+if (process.env.OLLAMA_HOIST) {
+
+    spawn('ollama', ['serve'], { detached: true });
+
+   
+
+
+    setTimeout(async () => {
+
+        remoteClient = new Ollama({
+            host: botVars.ollamaServer
+        });
+
+        await remoteClient.pull({ model: botVars.model, stream: false });
+
+
+        main();
+
+    }, 5000);
+} else {
+
+    main();
+}
+
 
 

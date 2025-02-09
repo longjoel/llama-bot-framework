@@ -19,4 +19,3 @@ RUN apt update -y && apt install nodejs -y
 RUN curl -fsSL https://ollama.com/install.sh | sh
 
 WORKDIR /app
-COPY . /app

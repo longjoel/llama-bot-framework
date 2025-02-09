@@ -13,24 +13,36 @@ export class BotFrameworkClient {
     baseInterval;
     isProcessing;
     model;
+    lastTimestamp = new Date();
+    /**
+     * So we're just gonna kind of chill here and see
+     * if our name is brought up. If it is, great,
+     * let's generate a completion, have a brain thought.
+     *
+     * @returns {void}
+     */
     reactiveLoop() {
-        // if we are reactive, only reply if the message includes our name.
-        if (this.activityLevel == 'reactive') {
-            if (!this.chatMessageHistory.filter(msg => msg.message.includes(this.name))) {
-                return;
-            }
-        }
-        // don't talk to yourself?
-        if (!this.chatMessageHistory || this.chatMessageHistory.length == 0 || this.chatMessageHistory.at(-1)?.from === this.name) {
-            setTimeout(() => { this.reactiveLoop(); }, this.baseInterval);
+        // what are the last messages that are applicable to me?
+        const lastMessagesToMe = this.chatMessageHistory
+            && this.chatMessageHistory.length > 0
+            && this.chatMessageHistory.filter(cmh => cmh.timestamp > this.lastTimestamp
+                && cmh.message.includes(this.name));
+        // nothing for me in the messages, just keep listening.
+        if (!lastMessagesToMe) {
+            setTimeout(() => { this.coreLoop(); }, this.baseInterval);
             return;
         }
-        // step 1 - build chat history to send to the ollama connection.
-        let convoHistory = JSON.stringify(this.chatMessageHistory.slice(-10));
-        // step 2, iterate over the thought patterns and apply them to the chat history.
+        // get incomming messages from the chat history
+        let convoHistory = JSON.stringify(this.chatMessageHistory.filter(cmh => cmh.timestamp > this.lastTimestamp));
+        // reset the last timestamp.
+        this.lastTimestamp = new Date();
+        // add the new conversation history to the message history.
         this.ollamaMessageHistory.push({ content: convoHistory, role: 'user' });
+        // do the chat!
         this.ollamaClient.chat({
-            stream: false, model: this.model, messages: [
+            stream: false,
+            model: this.model,
+            messages: [
                 { role: 'system', content: this.instructions.join('\n') },
                 ...this.ollamaMessageHistory.slice(-5)
             ]
@@ -38,10 +50,55 @@ export class BotFrameworkClient {
             if (!response.message.content.includes("<pass>")) {
                 this.ollamaMessageHistory.push(response.message);
                 this.ircClient.say(this.ircChannel, response.message.content);
-                this.chatMessageHistory.push({ from: this.name, to: '', message: response.message.content, timestamp: new Date().toISOString() });
+                this.chatMessageHistory.push({ from: this.name, to: '', message: response.message.content, timestamp: new Date() });
             }
-            setTimeout(() => { this.reactiveLoop(); }, this.baseInterval);
+            setTimeout(() => { this.coreLoop(); }, this.baseInterval);
         });
+    }
+    proactiveLoop() {
+        // what are the last messages that are applicable to me?
+        const lastMessagesToMe = this.chatMessageHistory
+            && this.chatMessageHistory.length > 0
+            && this.chatMessageHistory.filter(cmh => cmh.timestamp > this.lastTimestamp);
+        // nothing for me in the messages, just keep listening.
+        if (!lastMessagesToMe) {
+            setTimeout(() => { this.coreLoop(); }, this.baseInterval);
+            return;
+        }
+        // get incomming messages from the chat history
+        let convoHistory = JSON.stringify(this.chatMessageHistory.filter(cmh => cmh.timestamp > this.lastTimestamp));
+        // reset the last timestamp.
+        this.lastTimestamp = new Date();
+        // add the new conversation history to the message history.
+        this.ollamaMessageHistory.push({ content: convoHistory, role: 'user' });
+        // do the chat!
+        this.ollamaClient.chat({
+            stream: false,
+            model: this.model,
+            messages: [
+                { role: 'system', content: this.instructions.join('\n') },
+                ...this.ollamaMessageHistory.slice(-5)
+            ]
+        }).then(response => {
+            if (!response.message.content.includes("<pass>")) {
+                this.ollamaMessageHistory.push(response.message);
+                this.ircClient.say(this.ircChannel, response.message.content);
+                this.chatMessageHistory.push({ from: this.name, to: '', message: response.message.content, timestamp: new Date() });
+            }
+            setTimeout(() => { this.coreLoop(); }, this.baseInterval);
+        });
+    }
+    coreLoop() {
+        switch (this.activityLevel) {
+            case 'reactive':
+                this.reactiveLoop();
+                break;
+            case 'proactive':
+                this.proactiveLoop();
+                break;
+            default:
+                this.reactiveLoop();
+        }
     }
     baseInstructions() {
         return [
@@ -83,7 +140,7 @@ Do not worry about formatting or timestamps; just contribute to the discussion l
             console.log(from);
             if (from === this.name)
                 return;
-            this.chatMessageHistory.push({ from, to, message, timestamp: new Date().toISOString() });
+            this.chatMessageHistory.push({ from, to, message, timestamp: new Date() });
         });
         this.baseInterval = 1000;
         switch (this.activityLevel) {
@@ -99,7 +156,7 @@ Do not worry about formatting or timestamps; just contribute to the discussion l
                 this.baseInterval = this.baseInterval + (1000 * (Math.random() * 60));
                 break;
         }
-        this.reactiveLoop();
+        this.coreLoop();
     }
     ;
     destroy() {

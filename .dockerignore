@@ -1,0 +1,7 @@
+.gitignore
+compose.yaml
+compose.yaml.old
+Dockerfile
+Readme.md
+irc
+ollama
