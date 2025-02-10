@@ -21,6 +21,7 @@ services:
   #   restart: unless-stopped
   #   networks:
   #     - llama-net
+
   alice:
     image: localhost/longjoel/llama-bot-fw
     container_name: alice
@@ -29,9 +30,9 @@ services:
       OLLAMA_SERVER: http://localhost:11434
       IRC_SERVER: vault
       IRC_NICK: alice
-      MODEL: llama3.2
-      PROMPT: "you are a sexy confident assistant."
-      OLLAMA_HOIST: true
+      MODEL: qwen:7b
+      PROMPT: "you are Alice."
+      OLLAMA_HOIST: false
       ACTIVITY: proactive
     volumes:
       - ./ollama:/root/.ollama
@@ -56,6 +57,7 @@ services:
       - .:/app
     networks:
       - llama-net
+
   peep:
     image: localhost/longjoel/llama-bot-fw
     container_name: peep
@@ -64,8 +66,8 @@ services:
       OLLAMA_SERVER: http://localhost:11434
       IRC_SERVER: vault
       IRC_NICK: peep
-      MODEL: tinyllama
-      PROMPT: "you are peep. act like a pet llama named peep."
+      MODEL: llama3.2
+      PROMPT: "you are peep. act like a pet llama named peep. Do not respond in english. Just grunts."
       OLLAMA_HOIST: true
       ACTIVITY: proactive
     volumes:

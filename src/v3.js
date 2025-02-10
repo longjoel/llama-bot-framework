@@ -38,7 +38,6 @@ const main = () => {
         channels: ['#bots'],
     });
 
-    /** ircClient, ollamaClient, name, thoughtPatterns, idleThoughts, activityLevel, mood, instructions */
     const bot = new BotFrameworkClient(ircClient, 
         remoteClient, 
         botVars.ircNick, 
