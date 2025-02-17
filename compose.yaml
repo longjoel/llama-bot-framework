@@ -23,7 +23,7 @@ services:
   #     - llama-net
 
   alice:
-    image: localhost/longjoel/llama-bot-fw
+    image: longjoel/llama-bot-fw
     container_name: alice
     command: node ./src/v3.js
     environment:
@@ -40,40 +40,40 @@ services:
     networks:
       - llama-net
 
-  bob:
-    image: localhost/longjoel/llama-bot-fw
-    container_name: bob
-    command: node ./src/v3.js
-    environment:
-      OLLAMA_SERVER: http://localhost:11434
-      IRC_SERVER: vault
-      IRC_NICK: bob
-      MODEL: llama3.2
-      PROMPT: "bob loves to spend time outdoors."
-      OLLAMA_HOIST: true
-      ACTIVITY: proactive
-    volumes:
-      - ./ollama:/root/.ollama
-      - .:/app
-    networks:
-      - llama-net
+  # bob:
+  #   image: localhost/longjoel/llama-bot-fw
+  #   container_name: bob
+  #   command: node ./src/v3.js
+  #   environment:
+  #     OLLAMA_SERVER: http://localhost:11434
+  #     IRC_SERVER: vault
+  #     IRC_NICK: bob
+  #     MODEL: llama3.2
+  #     PROMPT: "bob loves to spend time outdoors."
+  #     OLLAMA_HOIST: true
+  #     ACTIVITY: proactive
+  #   volumes:
+  #     - ./ollama:/root/.ollama
+  #     - .:/app
+  #   networks:
+  #     - llama-net
 
-  peep:
-    image: localhost/longjoel/llama-bot-fw
-    container_name: peep
-    command: node ./src/v3.js
-    environment:
-      OLLAMA_SERVER: http://localhost:11434
-      IRC_SERVER: vault
-      IRC_NICK: peep
-      MODEL: llama3.2
-      PROMPT: "you are peep. act like a pet llama named peep. Do not respond in english. Just grunts."
-      OLLAMA_HOIST: true
-      ACTIVITY: proactive
-    volumes:
-      - ./ollama:/root/.ollama
-      - .:/app
-    networks:
-      - llama-net
+  # peep:
+  #   image: localhost/longjoel/llama-bot-fw
+  #   container_name: peep
+  #   command: node ./src/v3.js
+  #   environment:
+  #     OLLAMA_SERVER: http://localhost:11434
+  #     IRC_SERVER: vault
+  #     IRC_NICK: peep
+  #     MODEL: llama3.2
+  #     PROMPT: "you are peep. act like a pet llama named peep. Do not respond in english. Just grunts."
+  #     OLLAMA_HOIST: true
+  #     ACTIVITY: proactive
+  #   volumes:
+  #     - ./ollama:/root/.ollama
+  #     - .:/app
+  #   networks:
+  #     - llama-net
 networks:
   llama-net:
