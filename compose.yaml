@@ -30,7 +30,7 @@ services:
       OLLAMA_SERVER: http://localhost:11434
       IRC_SERVER: vault
       IRC_NICK: alice
-      MODEL: qwen:7b
+      MODEL: llama3.2
       PROMPT: "you are Alice."
       OLLAMA_HOIST: false
       ACTIVITY: proactive
