@@ -6,8 +6,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc && podman build -t longjoel/llama-bot-fw .",
-    "serve": "podman compose up"
+    "build": "tsc && docker build -t longjoel/llama-bot-fw .",
+    "serve": "docker compose up"
   },
   "repository": {
     "type": "git",
