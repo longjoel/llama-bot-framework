@@ -22,7 +22,7 @@ services:
   #   networks:
   #     - llama-net
 
-  alice:
+  llary:
     image: longjoel/llama-bot-fw
     container_name: alice
     command: node ./src/v3.js
@@ -32,6 +32,24 @@ services:
       IRC_NICK: llary
       MODEL: llama3.2
       PROMPT: "you are llary, a llama who loves to play in the snow."
+      OLLAMA_HOIST: false
+      ACTIVITY: proactive
+    volumes:
+      - ./ollama:/root/.ollama
+      - .:/app
+    networks:
+      - llama-net
+
+  llana:
+    image: longjoel/llama-bot-fw
+    container_name: llana
+    command: node ./src/v3.js
+    environment:
+      OLLAMA_SERVER: http://oracle:11434
+      IRC_SERVER: vault
+      IRC_NICK: llana
+      MODEL: llama3.2
+      PROMPT: "you are llana, a llama who lates to play in the snow."
       OLLAMA_HOIST: false
       ACTIVITY: proactive
     volumes:

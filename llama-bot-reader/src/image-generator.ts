@@ -74,7 +74,28 @@ export async function buildImage(message: llamaMessage) {
     ctx.fillStyle = 'black';
     ctx.strokeStyle = 'black';
 
-    ctx.fillText(message.message, right.x, right.y+64, right.w);
+    let textRight = right.shrink(64);
+
+    const words = message.message.substring(0,60*6).split(' ')
+    let line = '';
+    let y = textRight.y;
+    const lineHeight = 70; // Adjust based on font size
+    const maxWidth = 60; // Characters per line
+
+    for (const word of words) {
+        const testLine = line + (line ? ' ' : '') + word;
+        if (testLine.length > maxWidth && line) {
+            ctx.fillText(line, textRight.x, y, textRight.w);
+            line = word;
+            y += lineHeight;
+        } else {
+            line = testLine;
+        }
+    }
+    // Draw the last line
+    if (line) {
+        ctx.fillText(line, textRight.x, y, textRight.w);
+    }
 
      const outputFilename = toPng(message);
         const outputPath = path.join(__dirname, '..', 'output', outputFilename);

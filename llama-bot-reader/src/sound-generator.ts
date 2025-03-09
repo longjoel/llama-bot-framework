@@ -23,10 +23,10 @@ export async function buildAudio(message: llamaMessage) {
             '-s', '150',    // Speed - can be customized
             '-p', '50',     // Pitch - can be customized
             '-a', '100',    // Volume - can be customized
-            `'${text}'`
+            text.replace(/[^\w\s.,?!]/g, '') // Strip special characters that espeak can't handle
         ], {
-            shell: true,
-            stdio: 'inherit'  // This will pipe stdout/stderr to the parent process
+            encoding: 'utf8',
+            stdio: ['pipe', 'pipe', 'pipe']  // Use pipes instead of inherit for better error handling
         });
 
         if (result.error) {
