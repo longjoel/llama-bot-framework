@@ -59,22 +59,30 @@ export async function buildImage(message: llamaMessage) {
     canvasRect.shrink(16).fill(ctx,'black');
     canvasRect.shrink(64).fill(ctx,'white');
 
-    const [left,right] = canvasRect.shrink(64).split(.30)
+    let [a,b] = canvasRect.shrink(64).split(.30);
 
-    left.fill(ctx,'gray');
-    right.fill(ctx,'white');
+    
+
+    if(message.direction){
+        console.log('flipping');
+        [a,b] = canvasRect.shrink(64).split(.70);
+        [a,b] = [b,a];
+    }
+
+    a.fill(ctx,'gray');
+    b.fill(ctx,'white');
 
     let llary = await loadImage(path.join(__dirname,'..','llama-images',`${message.from}.png`));
     
     while(!llary.complete){}
 
-    ctx.drawImage(llary,left.x, left.y,left.w,left.h);
+    ctx.drawImage(llary,a.x, a.y,a.w,a.h);
 
     ctx.font = '64px "weird"';
     ctx.fillStyle = 'black';
     ctx.strokeStyle = 'black';
 
-    let textRight = right.shrink(64);
+    let textRight = b.shrink(64);
 
     const words = message.message.substring(0,60*6).split(' ')
     let line = '';

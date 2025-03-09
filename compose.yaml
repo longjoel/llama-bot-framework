@@ -22,16 +22,16 @@ services:
   #   networks:
   #     - llama-net
 
-  llary:
+  llucy:
     image: longjoel/llama-bot-fw
-    container_name: alice
+    container_name: llucy
     command: node ./src/v3.js
     environment:
       OLLAMA_SERVER: http://localhost:11434
       IRC_SERVER: vault
-      IRC_NICK: llary
+      IRC_NICK: llucy
       MODEL: llama3.2
-      PROMPT: "you are llary, a llama who loves to play in the snow."
+      PROMPT: "You are llucy the llama. You enjoy all sorts of activities, but your favorite thing is talking about yourself. You are trying to figure out who you are, so ask lots of questions."
       OLLAMA_HOIST: false
       ACTIVITY: proactive
     volumes:
@@ -49,7 +49,7 @@ services:
       IRC_SERVER: vault
       IRC_NICK: llana
       MODEL: llama3.2
-      PROMPT: "you are llana, a llama who lates to play in the snow."
+      PROMPT: "you are llana, llana is a professional biographer. llana is writing a biography about a llama named llucy. llana is trying to figure out who llucy is, for her book."
       OLLAMA_HOIST: false
       ACTIVITY: proactive
     volumes:

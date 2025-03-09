@@ -17,16 +17,19 @@ const client = new irc.Client('vault', 'storyteller', {
     channels: ['#bots']
 });
 
+let lastMessage:llamaMessage;// = messageHistory.at(-1);
+
 client.addListener('message', function (from, to, message) {
 
-    const lastMessage = messageHistory.at(-1);
     if (lastMessage) {
 
-        messageHistory.push({ from, to, message, direction: lastMessage.from == from ? lastMessage.direction : !lastMessage.direction , timestamp:Date.now()} as llamaMessage);
+       lastMessage = { from, to, message, direction: lastMessage.from == from ? lastMessage.direction : !lastMessage.direction , timestamp:Date.now()} as llamaMessage;
+
 
     } else {
-        messageHistory.push({ from, to, message, direction: false, timestamp:Date.now() } as llamaMessage);
+        lastMessage={ from, to, message, direction: false, timestamp:Date.now() };
     }
+    messageHistory.push(lastMessage);
 
 
 });
@@ -63,9 +66,27 @@ const videoClipGenerator = () => {
 
     // grab the first image and sound file from the output folder
 
-    const firstWavFile = fs.readdirSync(path.join(__dirname, '..', 'output')).find((file) => file.endsWith('.wav'));
-    const firstPngFile = fs.readdirSync(path.join(__dirname, '..', 'output')).find((file) => file.endsWith('.png')); 
-    
+    // Get all files and sort them by timestamp (which is in the filename)
+    const outputFiles = fs.readdirSync(path.join(__dirname, '..', 'output'));
+    const baseNames = new Set();
+
+    // Extract base names without extensions
+    outputFiles.forEach(file => {
+        const baseName = file.split('.')[0];
+            baseNames.add(baseName);
+        
+    });
+
+    // Get the oldest timestamp that has both wav and png files
+    const firstMatchingBaseName = Array.from(baseNames)
+        .sort()
+        .find(baseName => 
+            outputFiles.includes(`${baseName}.wav`) && 
+            outputFiles.includes(`${baseName}.png`)
+        );
+
+    const firstWavFile = firstMatchingBaseName ? `${firstMatchingBaseName}.wav` : null;
+    const firstPngFile = firstMatchingBaseName ? `${firstMatchingBaseName}.png` : null;
     
     if (firstWavFile && firstPngFile) {
         const imagePath = path.join(__dirname, '..', 'output', firstPngFile);
@@ -75,8 +96,7 @@ const videoClipGenerator = () => {
         const result = spawnSync('ffmpeg', [
             '-loop', '1',
             '-i', imagePath,
-            '-i', audioPath,
-            '-c:v', 'libx264',
+            '-t', '3','-c:v', 'libx264',
             '-c:a', 'aac',
             '-strict', 'experimental',
             '-b:a', '192k',
