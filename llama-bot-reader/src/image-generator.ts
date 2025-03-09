@@ -64,7 +64,7 @@ export async function buildImage(message: llamaMessage) {
     left.fill(ctx,'gray');
     right.fill(ctx,'white');
 
-    let llary = await loadImage(path.join(__dirname,'..','llama-images','llary.png'));
+    let llary = await loadImage(path.join(__dirname,'..','llama-images',`${message.from}.png`));
     
     while(!llary.complete){}
 
@@ -74,7 +74,7 @@ export async function buildImage(message: llamaMessage) {
     ctx.fillStyle = 'black';
     ctx.strokeStyle = 'black';
 
-    ctx.fillText("My name is Llary the llama. I am an artificially intelligent llama,\nand I love causing problems. ", right.x, right.y+64, right.w);
+    ctx.fillText(message.message, right.x, right.y+64, right.w);
 
      const outputFilename = toPng(message);
         const outputPath = path.join(__dirname, '..', 'output', outputFilename);

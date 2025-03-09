@@ -55,13 +55,13 @@ function buildImage(message) {
         const [left, right] = canvasRect.shrink(64).split(.30);
         left.fill(ctx, 'gray');
         right.fill(ctx, 'white');
-        let llary = yield (0, canvas_1.loadImage)(path_1.default.join(__dirname, '..', 'llama-images', 'llary.png'));
+        let llary = yield (0, canvas_1.loadImage)(path_1.default.join(__dirname, '..', 'llama-images', `${message.from}.png`));
         while (!llary.complete) { }
         ctx.drawImage(llary, left.x, left.y, left.w, left.h);
         ctx.font = '64px "weird"';
         ctx.fillStyle = 'black';
         ctx.strokeStyle = 'black';
-        ctx.fillText("My name is Llary the llama. I am an artificially intelligent llama,\nand I love causing problems. ", right.x, right.y + 64, right.w);
+        ctx.fillText(message.message, right.x, right.y + 64, right.w);
         const outputFilename = (0, llamaMessage_1.toPng)(message);
         const outputPath = path_1.default.join(__dirname, '..', 'output', outputFilename);
         let outStream = fs_1.default.createWriteStream(outputPath);

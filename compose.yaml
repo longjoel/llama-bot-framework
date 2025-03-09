@@ -29,9 +29,9 @@ services:
     environment:
       OLLAMA_SERVER: http://localhost:11434
       IRC_SERVER: vault
-      IRC_NICK: alice
+      IRC_NICK: llary
       MODEL: llama3.2
-      PROMPT: "you are Alice."
+      PROMPT: "you are llary, a llama who loves to play in the snow."
       OLLAMA_HOIST: false
       ACTIVITY: proactive
     volumes:
