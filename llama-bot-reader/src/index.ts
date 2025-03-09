@@ -46,6 +46,7 @@ const timeStepFunction = () => {
 
         }
 
+        setTimeout(timeStepFunction, 500);
     } else {
 
         setTimeout(timeStepFunction, 1000);

@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.buildImage = buildImage;
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
+const llamaMessage_1 = require("./llamaMessage");
 const canvas_1 = require("canvas");
 (0, canvas_1.registerFont)(path_1.default.join(__dirname, '..', 'res', 'AngryBirdsPostcard-Regular.ttf'), {
     family: 'weird'
@@ -61,9 +62,11 @@ function buildImage(message) {
         ctx.fillStyle = 'black';
         ctx.strokeStyle = 'black';
         ctx.fillText("My name is Llary the llama. I am an artificially intelligent llama,\nand I love causing problems. ", right.x, right.y + 64, right.w);
-        let outStream = fs_1.default.createWriteStream('x.png');
+        const outputFilename = (0, llamaMessage_1.toPng)(message);
+        const outputPath = path_1.default.join(__dirname, '..', 'output', outputFilename);
+        let outStream = fs_1.default.createWriteStream(outputPath);
         let pngStream = canvas.createPNGStream();
         pngStream.pipe(outStream);
     });
 }
-buildImage({});
+//buildImage({} as llamaMessage);

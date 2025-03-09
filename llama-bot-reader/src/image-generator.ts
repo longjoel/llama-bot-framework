@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-import { llamaMessage } from "./llamaMessage";
+import { llamaMessage, toPng } from "./llamaMessage";
 import canvas, { Canvas, Image, loadImage, registerFont } from 'canvas';
 
 registerFont(path.join(__dirname,'..','res','AngryBirdsPostcard-Regular.ttf'), {
@@ -76,7 +76,10 @@ export async function buildImage(message: llamaMessage) {
 
     ctx.fillText("My name is Llary the llama. I am an artificially intelligent llama,\nand I love causing problems. ", right.x, right.y+64, right.w);
 
-    let outStream = fs.createWriteStream('x.png');
+     const outputFilename = toPng(message);
+        const outputPath = path.join(__dirname, '..', 'output', outputFilename);
+
+    let outStream = fs.createWriteStream(outputPath);
     let pngStream = canvas.createPNGStream();
 
     pngStream.pipe(outStream);
@@ -85,4 +88,4 @@ export async function buildImage(message: llamaMessage) {
 
 }
 
-buildImage({} as llamaMessage);
+//buildImage({} as llamaMessage);

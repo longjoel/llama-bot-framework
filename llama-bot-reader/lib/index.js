@@ -28,6 +28,7 @@ const timeStepFunction = () => {
             // generate a sound file
             (0, sound_generator_1.buildAudio)(message);
         }
+        setTimeout(timeStepFunction, 500);
     }
     else {
         setTimeout(timeStepFunction, 1000);
