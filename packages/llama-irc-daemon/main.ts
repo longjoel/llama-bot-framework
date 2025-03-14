@@ -1,16 +1,45 @@
 /** */
+
+export class LlamaVoice {
+  public name: string = "en-us";
+  public volume: number = 1.0;
+  public pitch: number = 1.0;
+  public speed: number = 1.0;
+}
+
+export class LlamaCard {
+  public fontPath: string =
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf";
+  public fontSize: number = 24;
+  public fontColor: string = "#000000";
+  public backgroundColor: string = "#FFFFFF";
+}
+
 export class LlamaPersona {
   public name: string = "llama";
   public age: number = 42;
 
-  public responseRates:Record<string,number> = {
+  public responseRates: Record<string, number> = {
     neutral: 0.5,
     happy: 0.8,
     sad: 0.2,
-    angry: 0.9
-  }
-
+    angry: 0.9,
+  };
   public responseRate: number = 0.5;
+
+  public LlamaCards: Record<string, LlamaCard> = {
+    neutral: new LlamaCard(),
+    happy: new LlamaCard(),
+    sad: new LlamaCard(),
+    angry: new LlamaCard(),
+  };
+
+  public LlamaVoices: Record<string, LlamaVoice> = {
+    neutral: new LlamaVoice(),
+    happy: new LlamaVoice(),
+    sad: new LlamaVoice(),
+    angry: new LlamaVoice(),
+  };
 
   public moods: Record<string, string> = {
     neutral:
@@ -42,7 +71,7 @@ export class LlamaPersona {
     "Encourage positive interaction: Promote a positive and inclusive environment.",
     "Follow chat room rules: Adhere to any specific rules set by the chat room moderators.",
     "Limit responses: Avoid dominating the conversation; allow other users to participate.",
-    "Avoid repetition: Do not repeat the same information or responses frequently."
+    "Avoid repetition: Do not repeat the same information or responses frequently.",
   ];
 
   public toSystemPrompt(): string {
@@ -58,7 +87,7 @@ export class LlamaPersona {
       ${this.realismSettings[this.realism]}
       
       Chat Room Rules:
-      ${this.chatRules.join('\n')}
+      ${this.chatRules.join("\n")}
 
       You are currently feeling ${this.mood}: 
       ${this.moods[this.mood]}

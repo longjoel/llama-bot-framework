@@ -2,6 +2,7 @@
   "tasks": { "dev": "deno run --watch main.ts" },
   "workspace": [
     "./packages/llama-irc-daemon",
-    "./packages/llama-video-compiler"
+    "./packages/llama-video-compiler",
+    "./packages/llama-common"
   ]
 }
