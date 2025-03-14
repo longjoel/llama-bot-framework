@@ -17,24 +17,24 @@ const client = new irc.Client('vault', 'storyteller', {
     channels: ['#bots']
 });
 
-let lastMessage:llamaMessage;// = messageHistory.at(-1);
+let lastMessage: llamaMessage;// = messageHistory.at(-1);
 
 client.addListener('message', function (from, to, message) {
 
     if (lastMessage) {
 
-       lastMessage = { from, to, message, direction: lastMessage.from == from ? lastMessage.direction : !lastMessage.direction , timestamp:Date.now()} as llamaMessage;
+        lastMessage = { from, to, message, direction: lastMessage.from == from ? lastMessage.direction : !lastMessage.direction, timestamp: Date.now() } as llamaMessage;
 
 
     } else {
-        lastMessage={ from, to, message, direction: false, timestamp:Date.now() };
+        lastMessage = { from, to, message, direction: false, timestamp: Date.now() };
     }
     messageHistory.push(lastMessage);
 
 
 });
 
-const timeStepFunction = () => {
+const timeStepFunction = async () => {
 
     if (messageHistory.length) {
 
@@ -44,19 +44,19 @@ const timeStepFunction = () => {
         if (message) {
 
             // generate an image
-            buildImage(message);
-            
-            
+            await buildImage(message);
+
+
             // generate a sound file
-            buildAudio(message);
+            await buildAudio(message);
 
 
         }
 
-        setTimeout(timeStepFunction, 500);
+        setTimeout(await timeStepFunction, 500);
     } else {
 
-        setTimeout(timeStepFunction, 1000);
+        setTimeout(await timeStepFunction, 1000);
     }
 }
 
@@ -73,44 +73,56 @@ const videoClipGenerator = () => {
     // Extract base names without extensions
     outputFiles.forEach(file => {
         const baseName = file.split('.')[0];
-            baseNames.add(baseName);
-        
+        baseNames.add(baseName);
+
     });
 
     // Get the oldest timestamp that has both wav and png files
     const firstMatchingBaseName = Array.from(baseNames)
         .sort()
-        .find(baseName => 
-            outputFiles.includes(`${baseName}.wav`) && 
+        .find(baseName =>
+            outputFiles.includes(`${baseName}.wav`) &&
             outputFiles.includes(`${baseName}.png`)
         );
 
     const firstWavFile = firstMatchingBaseName ? `${firstMatchingBaseName}.wav` : null;
     const firstPngFile = firstMatchingBaseName ? `${firstMatchingBaseName}.png` : null;
-    
+
     if (firstWavFile && firstPngFile) {
         const imagePath = path.join(__dirname, '..', 'output', firstPngFile);
         const audioPath = path.join(__dirname, '..', 'output', firstWavFile);
         const outputPath = path.join(__dirname, '..', 'output', Date.now() + '.mp4');
-        
         const result = spawnSync('ffmpeg', [
             '-loop', '1',
             '-i', imagePath,
-            '-t', '3','-c:v', 'libx264',
+            '-i', audioPath,
+            '-c:v', 'libx264',
             '-c:a', 'aac',
             '-strict', 'experimental',
             '-b:a', '192k',
             '-shortest',
             outputPath
         ]);
-        
-        if (result.error) {
-            console.error('Error generating video:', result.error);
-        } else {
+
+        // Wait for ffmpeg to complete before attempting to delete files
+        if (result.status === 0) {
+            // Success - ffmpeg completed successfully
             console.log('Generated video:', outputPath);
-            fs.unlinkSync(imagePath);
-            fs.unlinkSync(audioPath);
+
+            // Now it's safe to delete the source files
+            try {
+                fs.unlinkSync(imagePath);
+                fs.unlinkSync(audioPath);
+                console.log('Deleted source files after successful video generation');
+            } catch (deleteError) {
+                console.error('Error deleting source files:', deleteError);
+            }
+        } else {
+            console.error('Error generating video. Exit code:', result.status);
+            console.error('stderr:', result.stderr.toString());
         }
+
+
     }
 
 

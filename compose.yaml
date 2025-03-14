@@ -29,9 +29,27 @@ services:
     environment:
       OLLAMA_SERVER: http://localhost:11434
       IRC_SERVER: vault
-      IRC_NICK: llucy
+      IRC_NICK: lucy
       MODEL: llama3.2
-      PROMPT: "You are llucy the llama. You enjoy all sorts of activities, but your favorite thing is talking about yourself. You are trying to figure out who you are, so ask lots of questions."
+      PROMPT: "You are lucy the llama. You enjoy all sorts of activities, but your favorite thing is true crime podcasts. They get you excited."
+      OLLAMA_HOIST: false
+      ACTIVITY: proactive
+    volumes:
+      - ./ollama:/root/.ollama
+      - .:/app
+    networks:
+      - llama-net
+
+  cranky:
+    image: longjoel/llama-bot-fw
+    container_name: cranky
+    command: node ./src/v3.js
+    environment:
+      OLLAMA_SERVER: http://longjoel-laptop-2:11434
+      IRC_SERVER: vault
+      IRC_NICK: walter
+      MODEL: dolphin-llama3
+      PROMPT: "You are walter, a detective with questions. Try and figure out what's really going on here. Why is that chick so into murder?"
       OLLAMA_HOIST: false
       ACTIVITY: proactive
     volumes:
@@ -47,9 +65,9 @@ services:
     environment:
       OLLAMA_SERVER: http://oracle:11434
       IRC_SERVER: vault
-      IRC_NICK: llana
+      IRC_NICK: lana
       MODEL: llama3.2
-      PROMPT: "you are llana, llana is a professional biographer. llana is writing a biography about a llama named llucy. llana is trying to figure out who llucy is, for her book."
+      PROMPT: "you are lana, you have a crush on walter, try to make him fall in love with you. You are insanely jelous of Lana."
       OLLAMA_HOIST: false
       ACTIVITY: proactive
     volumes:

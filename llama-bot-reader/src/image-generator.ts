@@ -3,9 +3,12 @@ import path from 'path';
 
 import { llamaMessage, toPng } from "./llamaMessage";
 import canvas, { Canvas, Image, loadImage, registerFont } from 'canvas';
+import { llamaProfile, profiles } from './llama-profile';
 
-registerFont(path.join(__dirname,'..','res','AngryBirdsPostcard-Regular.ttf'), {
-    family:'weird'
+profiles.forEach(profile => {
+    registerFont(profile.fontPath, {
+        family: profile.name
+    });
 });
 
 class rect {
@@ -27,12 +30,12 @@ class rect {
 
     }
 
-    fill(ctx:canvas.CanvasRenderingContext2D, fillStyle:string) {
+    fill(ctx: canvas.CanvasRenderingContext2D, fillStyle: string) {
         ctx.fillStyle = fillStyle;
         ctx.fillRect(this.x, this.y, this.w, this.h);
     }
 
-    split(ratio:number){
+    split(ratio: number) {
 
         const lwidth = Math.floor(this.w * ratio);
         const rwidth = this.w - lwidth;
@@ -41,50 +44,55 @@ class rect {
 
         return [
             new rect(this.x, this.y, lwidth, this.h),
-            new rect(this.x+ lwidth,this.y, rwidth,this.h )
+            new rect(this.x + lwidth, this.y, rwidth, this.h)
         ]
     }
 }
 
 export async function buildImage(message: llamaMessage) {
 
-    let canvasRect = new rect(0,0,1920,540);
+    let canvasRect = new rect(0, 0, 1920, 540);
 
     const canvas = new Canvas(canvasRect.w, canvasRect.h, "image");
 
     const ctx = canvas.getContext("2d");
 
-    canvasRect.fill(ctx,'white');
-    
-    canvasRect.shrink(16).fill(ctx,'black');
-    canvasRect.shrink(64).fill(ctx,'white');
+    canvasRect.fill(ctx, 'white');
 
-    let [a,b] = canvasRect.shrink(64).split(.30);
+    canvasRect.shrink(16).fill(ctx, 'black');
+    canvasRect.shrink(64).fill(ctx, 'white');
 
-    
+    let [a, b] = canvasRect.shrink(64).split(.30);
 
-    if(message.direction){
+
+
+    if (message.direction) {
         console.log('flipping');
-        [a,b] = canvasRect.shrink(64).split(.70);
-        [a,b] = [b,a];
+        [a, b] = canvasRect.shrink(64).split(.70);
+        [a, b] = [b, a];
     }
 
-    a.fill(ctx,'gray');
-    b.fill(ctx,'white');
+    a.fill(ctx, 'gray');
+    b.fill(ctx, 'white');
 
-    let llary = await loadImage(path.join(__dirname,'..','llama-images',`${message.from}.png`));
-    
-    while(!llary.complete){}
+    let profile = profiles.find(x => x.name == message.from);
+    if (!profile) {
+        profile = profiles[0]
+    }
 
-    ctx.drawImage(llary,a.x, a.y,a.w,a.h);
+    let img = await loadImage(profile.imagePath);
 
-    ctx.font = '64px "weird"';
+    while (!img.complete) { }
+
+    ctx.drawImage(img, a.x, a.y, a.w, a.h);
+
+    ctx.font = `64px "${profile.name}"`;
     ctx.fillStyle = 'black';
     ctx.strokeStyle = 'black';
 
     let textRight = b.shrink(64);
 
-    const words = message.message.substring(0,60*6).split(' ')
+    const words = message.message.substring(0, 60 * 6).split(' ')
     let line = '';
     let y = textRight.y;
     const lineHeight = 70; // Adjust based on font size
@@ -105,8 +113,8 @@ export async function buildImage(message: llamaMessage) {
         ctx.fillText(line, textRight.x, y, textRight.w);
     }
 
-     const outputFilename = toPng(message);
-        const outputPath = path.join(__dirname, '..', 'output', outputFilename);
+    const outputFilename = toPng(message);
+    const outputPath = path.join(__dirname, '..', 'output', outputFilename);
 
     let outStream = fs.createWriteStream(outputPath);
     let pngStream = canvas.createPNGStream();

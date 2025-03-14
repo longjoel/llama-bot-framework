@@ -6,7 +6,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc && docker build -t longjoel/llama-bot-fw .",
+    "build": "tsc && docker build  --load -t longjoel/llama-bot-fw .",
     "serve": "docker compose up"
   },
   "repository": {
