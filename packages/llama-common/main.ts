@@ -99,8 +99,10 @@ export class LlamaProfile {
   public ircNick: string = "llama";
   public ircUser: string = "llama";
   public ircRealName: string = "llama";
-  public ircChannels: string[] = ["#llama"];
+  public ircChannels: string[] = ["#bots"];
   public ircPassword: string = "";
+  public ircPollRate: number = 1000;
+  public ircPollHistory: number = 10;
 
   public modelName: string = "llama3.2";
   public modelServer: string = "http://localhost:11434";
@@ -110,4 +112,8 @@ export class LlamaProfile {
   public modelTopK: number = 40;
   public modelFrequencyPenalty: number = 0.0;
   public modelPresencePenalty: number = 0.0;
+
+  public modelPollRate: number = 1000;
+  public modelPollHistory: number = 10;
+
 }
