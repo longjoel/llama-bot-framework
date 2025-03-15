@@ -1,0 +1,79 @@
+{
+  "version": "4",
+  "specifiers": {
+    "jsr:@csha/irc@~0.6.1": "0.6.1",
+    "jsr:@epi/ollama@^0.0.8": "0.0.8",
+    "jsr:@henrygd/queue@^1.0.6": "1.0.7",
+    "jsr:@irc/client@~0.17.2": "0.17.2",
+    "jsr:@openai/openai@^4.87.3": "4.87.3",
+    "jsr:@std/assert@1": "1.0.11",
+    "jsr:@std/fmt@^1.0.2": "1.0.6",
+    "jsr:@std/internal@^1.0.5": "1.0.5",
+    "npm:zod@3": "3.24.2"
+  },
+  "jsr": {
+    "@csha/irc@0.6.1": {
+      "integrity": "3f696a75b2ec12f23bb208fab3657485d4a741d3cdbc563b448b4be68e51d876"
+    },
+    "@epi/ollama@0.0.8": {
+      "integrity": "660e2c56fb5d2bde8abc224a8c9f6d0016c93d47c67301bcb670a215b7c59644"
+    },
+    "@henrygd/queue@1.0.7": {
+      "integrity": "98cade132744bb420957c5413393f76eb8ba7261826f026c8a89a562b8fa2961"
+    },
+    "@irc/client@0.17.2": {
+      "integrity": "9448e583f718d7e5af9ac387ffddcac5d953785499754d52360623bd35034cd5",
+      "dependencies": [
+        "jsr:@henrygd/queue",
+        "jsr:@std/fmt"
+      ]
+    },
+    "@openai/openai@4.87.3": {
+      "integrity": "1a5e6008880ce1b38faa83b5e647becaf870a9f23d1bc61d55f703174055e4c6",
+      "dependencies": [
+        "npm:zod"
+      ]
+    },
+    "@std/assert@1.0.11": {
+      "integrity": "2461ef3c368fe88bc60e186e7744a93112f16fd110022e113a0849e94d1c83c1",
+      "dependencies": [
+        "jsr:@std/internal"
+      ]
+    },
+    "@std/fmt@1.0.6": {
+      "integrity": "a2c56a69a2369876ddb3ad6a500bb6501b5bad47bb3ea16bfb0c18974d2661fc"
+    },
+    "@std/internal@1.0.5": {
+      "integrity": "54a546004f769c1ac9e025abd15a76b6671ddc9687e2313b67376125650dc7ba"
+    }
+  },
+  "npm": {
+    "zod@3.24.2": {
+      "integrity": "sha512-lY7CDW43ECgW9u1TcT3IoXHflywfVqDYze4waEz812jR/bZ8FHDsl7pFQoSZTz5N+2NqRXs8GBwnAwo3ZNxqhQ=="
+    }
+  },
+  "workspace": {
+    "members": {
+      "packages/llama-common": {
+        "dependencies": [
+          "jsr:@std/assert@1"
+        ]
+      },
+      "packages/llama-irc-daemon": {
+        "dependencies": [
+          "jsr:@csha/irc@~0.6.1",
+          "jsr:@epi/ollama@^0.0.8",
+          "jsr:@irc/client@~0.17.2",
+          "jsr:@llama-bot-framework/llama-common@*",
+          "jsr:@openai/openai@^4.87.3",
+          "jsr:@std/assert@1"
+        ]
+      },
+      "packages/llama-video-compiler": {
+        "dependencies": [
+          "jsr:@std/assert@1"
+        ]
+      }
+    }
+  }
+}
