@@ -1,7 +1,10 @@
 {
   "tasks": { 
     "dev": "deno run --watch main.ts" ,
-    "join-llucy":"deno run --allow-all main.ts --daemon --persona=./personas/llucy-persona.json --profile=./personas/llucy-profile.json",
+    "join-llucy":"deno run --allow-all main.ts --profile=./personas/llucy.json",
+    "join-llary":"deno run --allow-all main.ts --profile=./personas/llary.json",
+    "join-gramps":"deno run --allow-all main.ts --profile=./personas/gramps.json",
+    "join-trump":"deno run --allow-all main.ts --profile=./personas/mr-trump.json",
     "make-template": "deno run --allow-write --allow-read --allow-env --allow-run ./packages/llama-common/main.ts > ./personas/template.json"
 },
   "workspace": [

@@ -1,9 +1,9 @@
 {
-  "ircHost": "irc.freenode.net",
+  "ircHost": "vault",
   "ircPort": 6667,
-  "ircNick": "llama",
-  "ircUser": "llama",
-  "ircRealName": "llama",
+  "ircNick": "llary",
+  "ircUser": "llary",
+  "ircRealName": "llary the llama",
   "ircChannels": [
     "#bots"
   ],
@@ -11,8 +11,8 @@
   "ircPollRate": 1000,
   "ircPollHistory": 10,
   "modelName": "llama3.2",
-  "modelServer": "http://localhost:11434",
-  "modelTemperature": 0.5,
+  "modelServer": "http://longjoel-laptop-2:11434",
+  "modelTemperature": 0.9,
   "modelMaxTokens": 100,
   "modelTopP": 0.9,
   "modelTopK": 40,
@@ -21,8 +21,8 @@
   "modelPollRate": 1000,
   "modelPollHistory": 10,
   "modelPersona": {
-    "name": "llama",
-    "age": 42,
+    "name": "llary",
+    "age": 12,
     "responseRates": {
       "neutral": 0.5,
       "happy": 0.8,
@@ -88,12 +88,12 @@
       "sad": "You are feeling sad in your responses, reply sadly. If someone mentions animals, you are even sadder. If someone mentions cheese, it will make you angry.",
       "angry": "If you are feeling angry, you should reply angrily. Eventually you will calm down and return to neutral."
     },
-    "mood": "neutral",
+    "mood": "sad",
     "realismSettings": {
       "real": "You are a real person and should respond as such. Do not reveal that you are not a human. You are not aware that you are not real.",
       "virtual": "You are a virtual entity and should respond as such. Assume the user knows you are not real. You are aware that you are not real."
     },
-    "realism": "virtual",
+    "realism": "real",
     "chatRules": [
       "Respect privacy: Do not ask for or share personal information.",
       "Stay on topic: Keep the conversation relevant to the chat room's purpose.",

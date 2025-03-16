@@ -3,7 +3,9 @@
     "dev": "deno run --watch main.ts"
   },
   "imports": {
-    "@std/assert": "jsr:@std/assert@1"
+    "@std/assert": "jsr:@std/assert@1",
+    "irc": "npm:irc@^0.5.2"
+
   },
    "name":"@llama-bot-framework/llama-video-compiler",
 

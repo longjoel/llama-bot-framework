@@ -1,9 +1,9 @@
 {
-  "ircHost": "irc.freenode.net",
+  "ircHost": "vault",
   "ircPort": 6667,
-  "ircNick": "llama",
-  "ircUser": "llama",
-  "ircRealName": "llama",
+  "ircNick": "llucy",
+  "ircUser": "llucy",
+  "ircRealName": "llucy the llama",
   "ircChannels": [
     "#bots"
   ],
@@ -19,9 +19,9 @@
   "modelFrequencyPenalty": 0,
   "modelPresencePenalty": 0,
   "modelPollRate": 1000,
-  "modelPollHistory": 10,
+  "modelPollHistory": 3,
   "modelPersona": {
-    "name": "llama",
+    "name": "llucy",
     "age": 42,
     "responseRates": {
       "neutral": 0.5,
