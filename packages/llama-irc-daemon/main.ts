@@ -1,6 +1,6 @@
 /** */
-
-import { LlamaPersona, LlamaProfile } from "../llama-common/main.ts";
+import { LlamaPersona } from "../llama-common/main.ts";
+import type {  LlamaProfile } from "../llama-common/main.ts";
 import { Chat } from "@epi/ollama";
 
 import { Client } from "irc";
