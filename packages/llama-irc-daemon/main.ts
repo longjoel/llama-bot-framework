@@ -1,9 +1,9 @@
 /** */
 
-import type { LlamaPersona, LlamaProfile } from "../llama-common/main.ts";
+import { LlamaPersona, LlamaProfile } from "../llama-common/main.ts";
 import { Chat } from "@epi/ollama";
 
-import {Client} from "irc";
+import { Client } from "irc";
 
 export class IrcMessage {
   from: string = "";
@@ -29,34 +29,28 @@ export class ModelMessage {
 export class LlamaIrcDaemon {
   profile: LlamaProfile;
   ircClient: Client;
-  ircConnection: Deno.Conn|null = null;
+  ircConnection: Deno.Conn | null = null;
   persona: LlamaPersona;
 
   chatMessageHistory: IrcMessage[] = [];
   modelMessageHistory: ModelMessage[] = [];
 
-  constructor(LlamaProfile: LlamaProfile, LlamaPersona: LlamaPersona) {
-    this.persona = LlamaPersona;
-    this.profile = LlamaProfile;
+  constructor(llamaProfile: LlamaProfile, llamaPersona: LlamaPersona) {
+    this.persona = llamaPersona;
+    this.profile = llamaProfile;
 
     // create the IRC client
     this.ircClient = new Client(this.profile.ircHost, this.profile.ircNick, {
       channels: this.profile.ircChannels,
-      autoConnect:true
+      debug: true,
     });
 
-    // connect to the IRC server
-    this.ircClient.connect();
-
     // listen to incomming messages.
-    this.ircClient.on("message", (from, to, message) => {
-      if (to !== this.profile.ircNick) {
+    this.ircClient.addListener("message", (from, to, message) => {
+      if (from !== this.profile.ircNick) {
         this.chatMessageHistory.push(new IrcMessage(from, to, message));
       }
     });
-
-    // start the model polling, but after 2000ms to let messages accumulate
-    setTimeout(this.modelPoll, 2000);
   }
 
   consumeMessageHistory(): ModelMessage[] {
@@ -88,23 +82,32 @@ export class LlamaIrcDaemon {
   }
 
   // Poll the model for a response
-  async modelPoll() {
-    const result = await Chat({
-      API_URL: this.profile.modelServer,
-      stream: false,
-      model: this.profile.modelName,
-      messages: [
-        { role: "system", content: this.persona.toSystemPrompt() },
-        ...this.consumeMessageHistory(),
-      ],
-      options: {
-        temperature: this.profile.modelTemperature,
-      },
-    });
+  public async modelPoll() {
 
-    // Add the model response to the model message history
-    this.modelMessageHistory.push({ role: "assistant", content: result });
+    if (this.persona && this.chatMessageHistory.length > 0) {
 
-    setTimeout(await this.modelPoll, this.profile.modelPollRate);
+
+      const msgHistory = this.consumeMessageHistory();
+      const result = await Chat({
+        API_URL: this.profile.modelServer,
+        stream: false,
+        model: this.profile.modelName,
+        messages: [
+          {
+            role: "system",
+            content: LlamaPersona.toSystemPrompt(this.persona),
+          },
+          ...msgHistory,
+        ],
+        options: {
+          temperature: this.profile.modelTemperature,
+        },
+      });
+
+      if (result) {
+        this.modelMessageHistory.push({ role: "assistant", content: result });
+        this.ircClient.say("#bots", result);
+      }
+    }
   }
 }

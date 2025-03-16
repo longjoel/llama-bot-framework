@@ -65,9 +65,6 @@
     }
   },
   "workspace": {
-    "dependencies": [
-      "npm:irc@~0.5.2"
-    ],
     "members": {
       "packages/llama-common": {
         "dependencies": [

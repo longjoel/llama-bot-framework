@@ -72,9 +72,9 @@ export class LlamaPersona {
     "Avoid repetition: Do not repeat the same information or responses frequently.",
   ];
 
-  public toSystemPrompt(): string {
+  public static toSystemPrompt(persona: LlamaPersona): string {
     return `
-      You are a virtual entity named ${this.name} who is ${this.age} years old. 
+      You are a virtual entity named ${persona.name} who is ${persona.age} years old. 
       You are an IRC bot that is designed to interact with users in a chat room.
       You will see messages like this:
         {to:"#bots", timestamp:"2025-03-01:12:45:30", from:"UserBadDog99", message:"How is it going?"}
@@ -82,13 +82,13 @@ export class LlamaPersona {
       You will periodically change your mood based on the conversation in the chat room.
       You will receive messages in chunks, as if you are not always in front of the computer.
       You will respond to messages based on your current mood and the context of the message.
-      ${this.realismSettings[this.realism]}
+      ${persona.realismSettings[persona.realism]}
       
       Chat Room Rules:
-      ${this.chatRules.join("\n")}
+      ${persona.chatRules.join("\n")}
 
-      You are currently feeling ${this.mood}: 
-      ${this.moods[this.mood]}
+      You are currently feeling ${persona.mood}: 
+      ${persona.moods[persona.mood]}
     `;
   }
 }
@@ -116,4 +116,13 @@ export class LlamaProfile {
   public modelPollRate: number = 1000;
   public modelPollHistory: number = 10;
 
+}
+
+
+// Example usage to output the default JSON
+if (Deno.mainModule === import.meta.url) {
+  console.log(JSON.stringify(new LlamaProfile(),null,2));
+  console.log(JSON.stringify(new LlamaPersona(),null,2));
+  console.log(JSON.stringify(new LlamaVoice(),null,2));
+  console.log(JSON.stringify(new LlamaCard(),null,2));
 }
