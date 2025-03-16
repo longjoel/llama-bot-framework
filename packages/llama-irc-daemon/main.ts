@@ -1,9 +1,9 @@
 /** */
 
-import { LlamaPersona, LlamaProfile } from "../llama-common/main.ts";
+import type { LlamaPersona, LlamaProfile } from "../llama-common/main.ts";
 import { Chat } from "@epi/ollama";
 
-import { Client } from "@irc/client";
+import {Client} from "irc";
 
 export class IrcMessage {
   from: string = "";
@@ -29,6 +29,7 @@ export class ModelMessage {
 export class LlamaIrcDaemon {
   profile: LlamaProfile;
   ircClient: Client;
+  ircConnection: Deno.Conn|null = null;
   persona: LlamaPersona;
 
   chatMessageHistory: IrcMessage[] = [];
@@ -39,21 +40,15 @@ export class LlamaIrcDaemon {
     this.profile = LlamaProfile;
 
     // create the IRC client
-    this.ircClient = new Client(
-      this.profile.ircHost,
-      this.profile.ircNick,
-      {
-        port: this.profile.ircPort,
-        channels: this.profile.ircChannels,
-      },
-    );
-
-    // join each irc channel
-    this.profile.ircChannels.forEach((channel) => {
-      this.ircClient.join(channel);
+    this.ircClient = new Client(this.profile.ircHost, this.profile.ircNick, {
+      channels: this.profile.ircChannels,
+      autoConnect:true
     });
 
-    // when a message is received, add it to the chat history
+    // connect to the IRC server
+    this.ircClient.connect();
+
+    // listen to incomming messages.
     this.ircClient.on("message", (from, to, message) => {
       if (to !== this.profile.ircNick) {
         this.chatMessageHistory.push(new IrcMessage(from, to, message));
@@ -61,7 +56,7 @@ export class LlamaIrcDaemon {
     });
 
     // start the model polling, but after 2000ms to let messages accumulate
-    setTimeout(this.modelPoll,2000);
+    setTimeout(this.modelPoll, 2000);
   }
 
   consumeMessageHistory(): ModelMessage[] {

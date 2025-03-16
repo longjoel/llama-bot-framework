@@ -4,9 +4,10 @@
   },
   "imports": {
     "@epi/ollama": "jsr:@epi/ollama@^0.0.8",
-    "@irc/client": "jsr:@irc/client@^0.17.2",
     "@std/assert": "jsr:@std/assert@1",
-    "@llama-bot-framework/llama-common": "jsr:@llama-bot-framework/llama-common"
+    "@llama-bot-framework/llama-common": "jsr:@llama-bot-framework/llama-common",
+    "@types/irc": "npm:@types/irc@^0.5.4",
+    "irc": "npm:irc@^0.5.2"
   },
   "name":"@llama-bot-framework/llama-irc-daemon",
 
