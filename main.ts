@@ -1,7 +1,7 @@
 import process from "node:process";
 import fs from "node:fs";
 
-import { LlamaPersona, LlamaProfile } from "./packages/llama-common/main.ts";
+import { LlamaProfile } from "./packages/llama-common/main.ts";
 import { LlamaIrcDaemon } from "./packages/llama-irc-daemon/main.ts";
 
 interface CommandLineOptions {
@@ -59,9 +59,9 @@ function parseCommandLineArguments(): CommandLineOptions {
   return options;
 }
 
-async function runAsDaemon(profile: LlamaProfile, persona: LlamaPersona) {
+ function runAsDaemon(profile: LlamaProfile) {
   console.log("Running as LLM bot daemon");
-  const daemon = new LlamaIrcDaemon(profile, persona);
+  const daemon = new LlamaIrcDaemon(profile);
 
   const daemonTimeout = async () => {
     await daemon.modelPoll();
@@ -72,8 +72,8 @@ async function runAsDaemon(profile: LlamaProfile, persona: LlamaPersona) {
 }
 
 //TODO: Implement runAsNarrator function
-async function runAsNarrator(profile: LlamaProfile, persona: LlamaPersona) {
-  console.log("Running as IRC narrator connected to llama video compiler");
+ function runAsNarrator(profile: LlamaProfile) {
+  console.log("Running as IRC narrator connected to llama video compiler: ",profile);
   // TODO: Implement IRC narrator functionality
 }
 
@@ -85,16 +85,12 @@ async function main() {
       fs.readFileSync(options.profile).toString(),
     ) as LlamaProfile
     : null;
-  const persona = options.persona
-    ? JSON.parse(
-      fs.readFileSync(options.persona).toString(),
-    ) as LlamaPersona
-    : null;
+  
 
-  if (options.narrator && profile && persona) {
-    await runAsNarrator(profile, persona);
-  } else if (options.daemon && profile && persona) {
-    await runAsDaemon(profile, persona);
+  if (options.narrator && profile) {
+    await runAsNarrator(profile);
+  } else if (options.daemon && profile) {
+    await runAsDaemon(profile);
   } else {
     throw new Error("Invalid options");
   }

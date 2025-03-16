@@ -1,8 +1,8 @@
 {
   "tasks": { 
     "dev": "deno run --watch main.ts" ,
-    "join-llucy":"deno run --allow-all main.ts --daemon --persona=./personas/llucy-persona.json --profile=./personas/llucy-profile.json"
-
+    "join-llucy":"deno run --allow-all main.ts --daemon --persona=./personas/llucy-persona.json --profile=./personas/llucy-profile.json",
+    "make-template": "deno run --allow-write --allow-read --allow-env --allow-run ./packages/llama-common/main.ts > ./personas/template.json"
 },
   "workspace": [
     "./packages/llama-irc-daemon",

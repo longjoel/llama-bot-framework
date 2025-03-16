@@ -35,10 +35,9 @@ export class LlamaIrcDaemon {
   chatMessageHistory: IrcMessage[] = [];
   modelMessageHistory: ModelMessage[] = [];
 
-  constructor(llamaProfile: LlamaProfile, llamaPersona: LlamaPersona) {
-    this.persona = llamaPersona;
+  constructor(llamaProfile: LlamaProfile) {
+    this.persona = llamaProfile.modelPersona;
     this.profile = llamaProfile;
-
     // create the IRC client
     this.ircClient = new Client(this.profile.ircHost, this.profile.ircNick, {
       channels: this.profile.ircChannels,

@@ -116,13 +116,12 @@ export class LlamaProfile {
   public modelPollRate: number = 1000;
   public modelPollHistory: number = 10;
 
+  public modelPersona: LlamaPersona = new LlamaPersona();
+
 }
 
 
 // Example usage to output the default JSON
 if (Deno.mainModule === import.meta.url) {
   console.log(JSON.stringify(new LlamaProfile(),null,2));
-  console.log(JSON.stringify(new LlamaPersona(),null,2));
-  console.log(JSON.stringify(new LlamaVoice(),null,2));
-  console.log(JSON.stringify(new LlamaCard(),null,2));
-}
+ }
