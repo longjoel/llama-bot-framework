@@ -6,5 +6,7 @@
     "@std/assert": "jsr:@std/assert@1"
   },
    "name":"@llama-bot-framework/llama-video-compiler",
-  "version":"0.0.1"
-}
+
+   "exports":{
+    "./main.ts":"./main.ts"
+  }}

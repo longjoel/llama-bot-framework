@@ -1,5 +1,9 @@
 {
-  "tasks": { "dev": "deno run --watch main.ts" },
+  "tasks": { 
+    "dev": "deno run --watch main.ts" ,
+    "join-llucy":"deno run main.ts -- --persona=llucy"
+
+},
   "workspace": [
     "./packages/llama-irc-daemon",
     "./packages/llama-video-compiler",

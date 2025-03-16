@@ -5,6 +5,9 @@
   "imports": {
     "@std/assert": "jsr:@std/assert@1"
   },
-  "name":"@llama-bot-framework/llama-common"
+  "name":"@llama-bot-framework/llama-common",
+  "exports":{
+    "./main.ts":"./main.ts"
+  }
 
 }
